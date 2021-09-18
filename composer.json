@@ -1,0 +1,22 @@
+{
+    "name": "fonqing/aoma",
+    "description": "A simple and usefull library",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "EricWang",
+            "email": "fonqing@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+	    "php": ">=7.0",
+        "ext-redis": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Aoma\\": "src/"
+        }
+    }
+}
