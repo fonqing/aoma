@@ -3,9 +3,9 @@ namespace Aoma;
 use \Redis;
 use \Exception;
 /**
- * A multiple functional library
+ * A multiple functional Redis library
  *
- * 一个使用redis实现多功能工具类
+ * It contain queue basic method, GEO method
  *
  * @author Eric Wang,<fonqing@gmail.com>
  * @copyright Aomasoft co.,Ltd. 2021
@@ -14,17 +14,17 @@ use \Exception;
 class RedisPlus {
 
     /**
-     * @var array 实例列表
+     * @var array instance array
      */
     private static $instances = [];
 
     /**
-     * @var Redis 当前缓存实例
+     * @var Redis Current connection in a instance
      */
     private $connection = null;
 
     /**
-     * @var array 配置
+     * @var array configuration
      */
     private static $configs = [];
 
