@@ -7,9 +7,9 @@ use \Exception;
  *
  * 一个使用redis实现多功能工具类
  *
- * @author Eric Wong,<fonqing@gmail.com>
- * @copyright Cinso tech. co.,Ltd. 2020
- * @version $Id: RedisPlus.php 2257 2020-10-09 11:13:17Z Eric $
+ * @author Eric Wang,<fonqing@gmail.com>
+ * @copyright Aomasoft co.,Ltd. 2021
+ * @version 1
  */
 class RedisPlus {
 
@@ -28,14 +28,11 @@ class RedisPlus {
      */
     private static $configs = [];
 
-
-    /**
-     * @var string 单据锁默认超时时间（秒）
-     */
     /**
      * RedisTool constructor.
-     * @param array $config Redis connection configuration
-     * @param string $name Instance scope
+     * 
+     * @param array $config Redis connection configuration array
+     * @param string $name Instance scope name
      * @throws Exception
      */
     public function __construct(array $config = [], $name = 'default')
@@ -46,9 +43,9 @@ class RedisPlus {
     }
 
     /**
-     * 连接到 Redis
+     * Connect to Redis
      *
-     * @param array $config
+     * @param array $config Redis connection configuration array
      * @return Redis
      */
     public function connect(array $config)
@@ -70,9 +67,9 @@ class RedisPlus {
     }
 
     /**
-     * 获取Redis原生实例连接
+     * Get redis connection instance
      *
-     * @param array $config
+     * @param array $config Redis connection configuration array
      * @return Redis
      */
     public function getConnection(array $config = [])
@@ -83,15 +80,17 @@ class RedisPlus {
     }
 
     /**
-     * 初始化配置信息
+     * Initialize redis config
+     * 
+     * Must called first before use other method
      *
-     * @param array $config Redis connection configuration
+     * @param array $config Redis connection configuration array
      * @param string $name Instance scope
      * @throws Exception
      */
     public static function init(array $config, $name = 'default')
     {
-        //检查redis扩展
+        //Check extension
         if(!extension_loaded('redis')){
             throw new \Exception('Redis extension required');
         }
@@ -102,10 +101,10 @@ class RedisPlus {
     }
 
     /**
-     * 获取RedisTools实例
+     * Get RedisPlus instance
      *
-     * @param array $config
-     * @param string $name
+     * @param array $config Redis connection configuration array
+     * @param string $name scope name
      * @return RedisPlus
      * @throws Exception
      */
@@ -121,26 +120,10 @@ class RedisPlus {
     }
 
     /**
-     * 快速删除方法配和TP6
+     * Store data to Redis(String,Integer,Float,Array)
      *
-     * <code lang=php>
-     * RedisPlus::delByPrefix('prefix_');
-     * </code>
-     *
-     * @param string $key
-     * @return mixed
-     * @throws Exception
-     */
-    public static function del($key)
-    {
-        return self::instance()->deleteByPattern($key.'*');
-    }
-
-    /**
-     * 存储一般标量数据 String,Integer,Float,Array
-     *
-     * @param string $key cache name
-     * @param mixed $data data
+     * @param string $key Cache key
+     * @param mixed $data Cache data
      * @param int $ttl lifetime
      * @return bool
      */
@@ -152,10 +135,10 @@ class RedisPlus {
     }
 
     /**
-     * 读取数据
+     * Read data from redis by key
      *
-     * @param string $key cache name
-     * @param mixed $default default value
+     * @param string $key Cache key
+     * @param mixed $default Default value if cache key not exists
      * @return mixed|null
      */
     public static function get($key, $default = null)
@@ -171,12 +154,22 @@ class RedisPlus {
     }
 
     /**
-     * 连查带存获取数据
+     * Read cache data with callback store
      *
      * @param string $key
      * @param callable $fn
      * @param int $ttl
      * @return mixed|null
+     * 
+     * <code>
+     * //RedisPlus::init([...]);
+     * $data = RedisPlus::fetch('key', function(){
+     *     //Query data from database or other ways
+     *     $data = ReadFromDatabase('SELECT * FROM `table` WHERE 1');
+     *     //Must return the data you want to store
+     *     return $data;
+     * }, 86400);
+     * </code>
      */
     public static function fetch($key, callable $fn, $ttl = 0)
     {
@@ -195,13 +188,13 @@ class RedisPlus {
     }
 
     /**
-     * 使用通配符批量删除缓存项目
+     * Delete more cache item by a key pattern
      *
      * @param string $key
      * @return bool|int
      *
      * <code>
-     * $cache->deleteByPattern('prefix_*');
+     * RedisPlus::deleteByPattern('prefix_*');
      * </code>
      */
     public static function deleteByPattern($key)
@@ -216,10 +209,10 @@ class RedisPlus {
     }
 
     /**
-     * 队列入队
+     * Right Push data in a queue
      *
-     * @param string $name 队列名称
-     * @param mixed $data  附带数据
+     * @param string $name Queue name
+     * @param mixed $data Queue item
      * @return mixed
      */
     public static function queueIn($name, $data)
@@ -230,9 +223,9 @@ class RedisPlus {
     }
 
     /**
-     * 队列出队
+     * Let Popout data from a queue
      *
-     * @param string $name
+     * @param string $name Queue name
      * @return mixed
      */
     public static function queueOut($name)
@@ -244,9 +237,9 @@ class RedisPlus {
     }
 
     /**
-     * 读取下一个即将出队列的数据
+     * Get next item from a Queue
      *
-     * @param string $name
+     * @param string $name Queue name
      * @return mixed
      */
     public static function queueNext($name)
@@ -258,9 +251,9 @@ class RedisPlus {
     }
 
     /**
-     * 获取队列长度
+     * Get The queue length
      *
-     * @param string $name
+     * @param string $name Queue name
      * @return bool|int
      */
     public static function queueLength($name)
@@ -271,11 +264,12 @@ class RedisPlus {
     }
 
     /**
-     * 单台Redis上基于并发控制只执行一次某段逻辑
+     * Execute some logic absolute at once implements by the redis incr method
+     * Only worked on single redis server 
      *
-     * @param string $name 任务标识
-     * @param callable $fn 执行逻辑
-     * @param integer $ttl 有效时间
+     * @param string $name Task name(cache key)
+     * @param callable $fn Logic callback
+     * @param integer $ttl lifetime
      * @return boolean
      * 
      * <code>
@@ -305,7 +299,7 @@ class RedisPlus {
     }
     
     /**
-     * 添加坐标点
+     * Store geolocation data into redis
      *
      * @param string $key The key of GEO zset
      * @param string $lng longtitude
@@ -320,7 +314,7 @@ class RedisPlus {
     }
 
     /**
-     * 根据坐标查询范围内坐标点
+     * Query Geo point list with distance by given point
      *
      * @param string $key
      * @param string $lng
@@ -328,7 +322,7 @@ class RedisPlus {
      * @param int $distance  100
      * @param string $unit  m,km
      */
-    public static function queryGeo($key,$lng,$lat,$distance,$unit='')
+    public static function queryGeo($key, $lng, $lat, $distance, $unit = '')
     {
         $instance = self::instance();
         $connection = $instance->getConnection();
@@ -336,36 +330,22 @@ class RedisPlus {
     }
 
     /**
-     * Mapper method to redis instance
+     * Map static method to Redis extension
      *
      * @param string $method
      * @param array $args
      * @return mixed
      * @throws Exception
      */
-    public function __call($method, $args)
-    {
-        if(!$this->connection){
-            $this->getConnection();
-        }
-        if( method_exists($this->connection, $method) && is_callable([$this->connection, $method]) ){
-            return call_user_func_array([$this->connection, $method], $args);
-        }
-        $method = preg_replace('/[^0-9a-z_\-]+/i','', $method);
-        throw new Exception("Called to undefined method:'{$method}'");
-    }
-
-    /**
-     * Undocumented function
-     *
-     * @param string $method
-     * @param array $args
-     * @return mixed
-     */
     public static function __callStatic($method, $args)
     {
         $instance = self::instance();
-        return call_user_func_array([$instance, $method], $args);
+        $connection = $instance->getConnection();
+        if( method_exists($connection, $method) && is_callable([$connection, $method]) ){
+            return call_user_func_array([$connection, $method], $args);
+        }
+        $method = preg_replace('/[^0-9a-z_\-]+/i','', $method);
+        throw new Exception("Called to undefined method:'{$method}'");
     }
 
     /**
