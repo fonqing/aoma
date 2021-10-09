@@ -1,9 +1,7 @@
 <?php
 namespace Aoma;
 /**
- * A multiple functional Redis library
- *
- * It contain queue basic method, GEO method
+ * A Date helper library
  *
  * @author Eric Wang,<fonqing@gmail.com>
  * @copyright Aomasoft co.,Ltd. 2021
