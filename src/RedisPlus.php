@@ -344,7 +344,7 @@ class RedisPlus {
         if( method_exists($connection, $method) && is_callable([$connection, $method]) ){
             return call_user_func_array([$connection, $method], $args);
         }
-        $method = preg_replace('/[^0-9a-z_\-]+/i','', $method);
+        $method = preg_replace('/[^0-9a-z_\-]+/i', '', $method);
         throw new Exception("Called to undefined method:'{$method}'");
     }
 
