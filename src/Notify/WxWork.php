@@ -1,7 +1,7 @@
 <?php
 namespace Aoma\Notify;
 use Aoma\Notify;
-use Aoma\Notify\Notify as NotifyInterface;
+use Aoma\Notify\NotifyInterface;
 use Exception;
 
 class WxWork extends Notify implements NotifyInterface {
@@ -62,14 +62,17 @@ class WxWork extends Notify implements NotifyInterface {
                 $content.= $name.': '.$value.PHP_EOL;
             }
         }
-        $to = is_array($to) ? $to : [$to];
+        if(!empty($to)){
+            $this->mention = is_array($to) ? $to : [$to];
+        }
         $data = [
             'msgtype' => 'markdown',
             'markdown' => [
                 'content' => $content.PHP_EOL,
-                'mentioned_mobile_list' => $to,
+                'mentioned_mobile_list' => $this->mention,
             ]
         ];
+        //success response : {"errcode":0,"errmsg":"ok"}
         return self::post($this->server.$this->key, [
             'Content-Type: application/json'
         ], json_encode($data, JSON_UNESCAPED_UNICODE));

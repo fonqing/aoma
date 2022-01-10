@@ -1,7 +1,7 @@
 <?php
 namespace Aoma\Notify;
 
-interface Notify {
+interface NotifyInterface {
 
     /**
      * Send message 

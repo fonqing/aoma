@@ -1,7 +1,7 @@
 <?php
 namespace Aoma\Notify;
 use Aoma\Notify;
-use Aoma\Notify\Notify as NotifyInterface;
+use Aoma\Notify\NotifyInterface;
 use Exception;
 
 class Feishu extends Notify implements NotifyInterface {
@@ -62,8 +62,10 @@ class Feishu extends Notify implements NotifyInterface {
                 $content.= $name.': '.$value.PHP_EOL;
             }
         }
-        $to = is_array($to) ? $to : [$to];
-        foreach($to as $openid){
+        if(!empty($to)){
+            $this->mention = is_array($to) ? $to : [$to];
+        }
+        foreach($this->mention as $openid){
             $content.='<at user_id="'.$openid.'">相关接收人</at>'.PHP_EOL;
         }
 

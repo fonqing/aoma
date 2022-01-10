@@ -1,7 +1,7 @@
 <?php
 namespace Aoma\Notify;
 use Aoma\Notify;
-use Aoma\Notify\Notify as NotifyInterface;
+use Aoma\Notify\NotifyInterface;
 use Exception;
 
 class DingTalk extends Notify implements NotifyInterface {
@@ -63,8 +63,10 @@ class DingTalk extends Notify implements NotifyInterface {
                 $content.= $name.': '.$value.PHP_EOL;
             }
         }
-        $to = is_array($to) ? $to : [$to];
-        $content .= '@'.implode(' @', $to).PHP_EOL;
+        if(!empty($to)){
+            $this->mention = is_array($to) ? $to : [$to];
+        }
+        $content .= '@'.implode(' @', $this->mention).PHP_EOL;
         $content .= PHP_EOL;
         $data = [
             'msgtype' => 'markdown',
@@ -73,7 +75,7 @@ class DingTalk extends Notify implements NotifyInterface {
                 'text' => $content
             ],
             'at' => [
-                'atMobiles' => $to,
+                'atMobiles' => $this->mention,
                 'isAtAll' => false
             ]
         ];
