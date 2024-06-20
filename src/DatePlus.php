@@ -198,7 +198,7 @@ class DatePlus {
     {
          if(is_string($arg)){
              return strtotime($arg);
-         } elseif (!is_scalar($arg) && $arg instanceof \DateTime){
+         } elseif (!is_scalar($arg) && $arg instanceof DateTime){
              return $arg->getTimestamp();
          } elseif(is_int($arg)){
              return $arg;

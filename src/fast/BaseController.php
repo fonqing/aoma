@@ -6,7 +6,7 @@ namespace aoma\fast;
 use support\Request;
 use support\Response;
 use think\db\exception\ModelNotFoundException;
-use think\Model;
+use think\model\Collection;
 
 /**
  * 控制器基础类
@@ -39,6 +39,14 @@ abstract class BaseController
      * @var string
      */
     protected string $modelName = '';
+
+    protected string $exportName = '';
+
+    protected string $exportTitle = '';
+
+    protected array $exportColumn = [];
+
+    protected bool $fastExport = false;
 
     /**
      * Auto query filter based on config
@@ -133,6 +141,26 @@ abstract class BaseController
     }
 
     /**
+     * @return void
+     * @throws ModelNotFoundException
+     */
+    private function checkExport(): void
+    {
+        $model = $this->getModel();
+        if (method_exists($model, 'initExport')) {
+            $config = $model::initExport();
+            if (empty($this->exportName)) {
+                $this->exportName = $config['name'];
+            }
+            if (empty($this->exportTitle)) {
+                $this->exportTitle = $config['title'];
+            }
+            $this->exportColumn = $config['columns'];
+            $this->fastExport = $config['fast'] ?? false;
+        }
+    }
+
+    /**
      * 控制器中返回 HTTP JSON RESPONSE
      *
      * @param mixed|null $data
@@ -164,5 +192,56 @@ abstract class BaseController
             'msg' => $msg,
             'data' => $data,
         ]);
+    }
+
+    /**
+     * 合计二维数组某个键的值 支持 多维关联键
+     *
+     * @param array|Collection $array
+     * @param string $key
+     * @return float|int
+     * @throws \Exception
+     */
+    protected function sumField(Collection|array $array, string $key): float|int
+    {
+        if (!is_array($array) && method_exists($array, 'toArray')) {
+            $array = $array->toArray();
+        }
+        if (empty($array)) {
+            return 0;
+        }
+        if (strpos($key, '.') > 0) {
+            $sum = 0;
+            $keys = explode('.', $key);
+            foreach ($array as $row) {
+                $sum += match (count($keys)) {
+                    2 => floatval($row[$keys[0]][$keys[1]] ?? 0),
+                    3 => floatval($row[$keys[0]][$keys[1]][$keys[2]] ?? 0),
+                    4 => floatval($row[$keys[0]][$keys[1]][$keys[2]][$keys[3]] ?? 0),
+                    default => throw new \Exception('后端合计逻辑位数不够'),
+                };
+            }
+            return $sum;
+        }
+        return array_sum(array_column($array, $key));
+    }
+
+    /**
+     * 获取请求参数种符合前缀的键值对
+     *
+     * @param  string $prefix
+     * @return array
+     */
+    public function getParamByPrefix(string $prefix): array
+    {
+        $data = $this->request->all();
+        $res = [];
+        $len = strlen($prefix);
+        foreach ($data as $key => $value) {
+            if (substr($key, 0, $len) === $prefix) {
+                $res[substr($key, $len)] = $value;
+            }
+        }
+        return $res;
     }
 }

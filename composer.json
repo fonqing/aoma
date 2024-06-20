@@ -16,7 +16,10 @@
     "workerman/webman": "^1.5.5",
     "topthink/think-orm": "^3.0.14",
     "topthink/think-validate": "^2.0.2",
-    "topthink/think-cache": "^2.0.7"
+    "topthink/think-cache": "^2.0.7",
+    "phpoffice/phpspreadsheet": "^2.0",
+    "cache/simple-cache-bridge": "^1.2",
+    "cache/redis-adapter": "^1.2"
   },
   "suggest": {
     "ext-xlswriter": "Required for Hign performance Excel export",
