@@ -1,6 +1,6 @@
 {
   "name": "fonqing/aoma",
-  "description": "A simple and usefull library",
+  "description": "A simple and usefully library",
   "type": "library",
   "license": "MIT",
   "authors": [
@@ -9,14 +9,22 @@
       "email": "fonqing@gmail.com"
     }
   ],
-  "minimum-stability": "dev",
   "require": {
-    "php": ">=7.0",
-    "ext-redis": "*"
+    "php": ">=8.0",
+    "ext-redis": "*",
+    "ext-curl": "*",
+    "workerman/webman": "^1.5.5",
+    "topthink/think-orm": "^3.0.14",
+    "topthink/think-validate": "^2.0.2",
+    "topthink/think-cache": "^2.0.7"
+  },
+  "suggest": {
+    "ext-xlswriter": "Required for Hign performance Excel export",
+    "phpoffice/phpspreadsheet": "Required for less data Excel export"
   },
   "autoload": {
     "psr-4": {
-      "Aoma\\": "src/"
+      "aoma\\": "src/"
     }
   }
 }

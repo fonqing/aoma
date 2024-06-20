@@ -1,5 +1,5 @@
 <?php
-namespace Aoma\Notify;
+namespace aoma\notify;
 
 interface NotifyInterface {
 
@@ -11,7 +11,6 @@ interface NotifyInterface {
      * @param string $msg message
      * @param array $to mention list
      * @param array $extra extra data
-     * @return string|bool
      */
     public function send($type, $title, $msg, $to = [], $extra = []);
 
@@ -22,7 +21,6 @@ interface NotifyInterface {
      * @param string $msg
      * @param array $extra
      * @param array $mention
-     * @return void
      */
     public function success($title, $msg, $extra = [], $mention = []);
 
@@ -33,7 +31,6 @@ interface NotifyInterface {
      * @param string $msg
      * @param array $extra
      * @param array $mention
-     * @return void
      */
     public function error($title, $msg, $extra = [], $mention = []);
 
@@ -44,7 +41,6 @@ interface NotifyInterface {
      * @param string $msg
      * @param array $extra
      * @param array $mention
-     * @return void
      */
     public function notice($title, $msg, $extra = [], $mention = []);
 }

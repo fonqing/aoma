@@ -1,5 +1,7 @@
 <?php
-namespace Aoma;
+namespace aoma;
+use \DateTime;
+
 /**
  * A Date helper library
  *
@@ -15,24 +17,24 @@ class DatePlus {
      *
      * @var array
      */
-    public static $workdays = [];
+    public static array $workdays = [];
 
     /**
      * Holidays list
      *
      * @var array
      */
-    public static $holidays = [];
+    public static array $holidays = [];
 
     /**
      * Find whether a day is workday or holiday
      *
-     * @param string $date The date
+     * @param string|integer|DateTime $date The date
      * @return boolean
      */
-    public static function isWorkDay(string $date) : bool
+    public static function isWorkDay(mixed $date) : bool
     {
-        $time = strtotime($date);
+        $time = self::parseTimeArg($date);
         $date = date('Y-m-d', $time);
         if(in_array($date, self::$workdays)){
             return true;
@@ -89,8 +91,8 @@ class DatePlus {
     /**
      * Create day list 
      *
-     * @param string|integer $start Start date
-     * @param string|integer $end End date
+     * @param string|integer|DateTime $start Start date
+     * @param string|integer|DateTime $end End date
      * @param boolean $timestamp if true will return a timestamp in integer
      * @return array
      * <code>
@@ -99,10 +101,10 @@ class DatePlus {
      * //['2021-10-01', '2021-10-02', '2021-10-03']
      * </code>
      */
-    public static function getDayList($start, $end, bool $timestamp = false) : array
+    public static function getDayList(mixed $start, mixed $end, bool $timestamp = false) : array
     {
-        $start = is_int($start) ? $start : strtotime($start);
-        $end   = is_int($end)   ? $end   : strtotime($end);
+        $start = self::parseTimeArg($start);
+        $end   = self::parseTimeArg($end);
         if($start > $end) {
             return [];
         }
@@ -117,8 +119,8 @@ class DatePlus {
     /**
      * Create time list
      *
-     * @param string|integer $start start time
-     * @param string|integer $end   end time
+     * @param string|integer|DateTime $start Start date
+     * @param string|integer|DateTime $end End date
      * @param integer $size Duration
      * @param boolean $timestamp 
      * @return array
@@ -129,10 +131,10 @@ class DatePlus {
      * //['8:00:00', '9:00:00', '10:00:00']
      * </code>
      */
-    public static function getTimeList($start, $end, $size = 3600, $timestamp = false)
+    public static function getTimeList(mixed $start, mixed $end, int $size = 3600, bool $timestamp = false): array
     {
-        $time1 = is_int($start) ? $start : strtotime($start);
-        $time2 = is_int($end)   ? $end   : strtotime($end);
+        $time1 = self::parseTimeArg($start);
+        $time2 = self::parseTimeArg($end);
         if($time1 > $time2){
             return [];
         }
@@ -147,13 +149,13 @@ class DatePlus {
     /**
      * Get weekday Chinese name
      *
-     * @param string $dateString
-     *
+     * @param string|integer|DateTime $dateString
+     * @param bool $short
      * @return string
      */
-    public static function getWeekName(string $dateString, bool $short = false) : string
+    public static function getWeekName(mixed $dateString, bool $short = false) : string
     {
-        $timestamp = strtotime($dateString);
+        $timestamp = self::parseTimeArg($dateString);
         if ( $timestamp < 1 ){
             return '';
         }
@@ -172,23 +174,37 @@ class DatePlus {
     }
 
     /**
-     * Get week start date and week end date by a given date
+     * Get week start date and weekend date by a given date
      *
      * Attention: Start on Monday
-     * 
-     * @param string|integer $time
+     *
+     * @param int|string|DateTime $time
+     * @param bool $timestamp
      * @return array
      */
-    public static function weekRange($time = 0, bool $timestamp = false) : array
+    public static function weekRange(mixed $time = 0, bool $timestamp = false) : array
     {
-        $time = is_int($time) ? $time : strtotime($time);
-        if($time < 1){
+        $time = $time ? self::parseTimeArg($time) : time();
+        if ($time < 1) {
             $time = time();
         }
         $week = (int) date('N', $time);
         $mon  = $time - ( $week - 1 ) * 86400;
         $sun  = $time + abs( $week - 7 ) * 86400;
         return $timestamp ? [$mon, $sun] : [date('Y-m-d', $mon), date('Y-m-d', $sun)];
+    }
+
+    private static function parseTimeArg(mixed $arg): int
+    {
+         if(is_string($arg)){
+             return strtotime($arg);
+         } elseif (!is_scalar($arg) && $arg instanceof \DateTime){
+             return $arg->getTimestamp();
+         } elseif(is_int($arg)){
+             return $arg;
+         } else {
+             throw new \InvalidArgumentException('Invalid argument type');
+         }
     }
 
 }

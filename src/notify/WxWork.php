@@ -1,42 +1,43 @@
 <?php
-namespace Aoma\Notify;
-use Aoma\Notify;
-use Aoma\Notify\NotifyInterface;
+namespace aoma\notify;
+use Aoma\notify;
+use Aoma\notify\NotifyInterface;
 use Exception;
 
-class Feishu extends Notify implements NotifyInterface {
-/**
+class WxWork extends Notify implements NotifyInterface {
+    /**
      * WxWork Webhook notify robot Server API
      *
      * @var string
      */
-    private $server = 'https://open.feishu.cn/open-apis/bot/v2/hook/';
+    private string $server = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=';
 
     /**
      * WxWork Webhook notify API_KEY
      *
      * @var string
      */
-    private $key = '';
+    private string $key = '';
 
     /**
      * WxWork Webhook Notify Mention list
      *
      * @var array
      */
-    private $mention = [];
+    private array $mention = [];
 
     /**
      * Constructor
      *
      * @param array $config
+     * @throws Exception
      */
-    public function __construct($config)
+    public function __construct(array $config)
     {
-        if(!isset($config['key']) || empty($config['key'])){
+        if(empty($config['key'])){
             throw new Exception('NotifyRobot key required');
         }
-        if(!isset($config['mention']) || empty($config['mention'])){
+        if(empty($config['mention'])){
             throw new Exception('No mention to send');
         }
         $this->key = (string) $config['key'];
@@ -55,8 +56,8 @@ class Feishu extends Notify implements NotifyInterface {
      */
     public function send($type, $title, $msg, $to = [], $extra = [])
     {
-        //$content = "## {$title}\n\n";
-        $content = "> **{$msg}**\n\n";
+        $content = "## {$title}\n\n";
+        $content.= "> <font color=\"{$type}\">** {$msg} **</font>\n\n";
         if(is_array($extra)){
             foreach($extra as $name => $value){
                 $content.= $name.': '.$value.PHP_EOL;
@@ -65,35 +66,14 @@ class Feishu extends Notify implements NotifyInterface {
         if(!empty($to)){
             $this->mention = is_array($to) ? $to : [$to];
         }
-        foreach($this->mention as $openid){
-            $content.='<at user_id="'.$openid.'">相关接收人</at>'.PHP_EOL;
-        }
-
         $data = [
-            'receive_id' => $openid,
-            'msg_type' => 'interactive',
-            'content' => json_encode([
-                "config" => [
-                    "wide_screen_mode" => true,
-                    "enable_forward" => true
-                ],
-                'header' => [
-                    'title' => [
-                        'content' => $title,
-                        'tag' => 'plain_text'
-                    ]
-                ],
-                'elements' => [
-                    [
-                        'tag' => 'div',
-                        'text' => [
-                            'content' => $content,
-                            'tag' => 'lark_md'
-                        ]
-                    ]
-                ]
-            ])
+            'msgtype' => 'markdown',
+            'markdown' => [
+                'content' => $content.PHP_EOL,
+                'mentioned_mobile_list' => $this->mention,
+            ]
         ];
+        //success response : {"errcode":0,"errmsg":"ok"}
         return self::post($this->server.$this->key, [
             'Content-Type: application/json'
         ], json_encode($data, JSON_UNESCAPED_UNICODE));
@@ -106,9 +86,8 @@ class Feishu extends Notify implements NotifyInterface {
      * @param string $msg
      * @param array $extra
      * @param array $mention
-     * @return void
      */
-    public function success($title, $msg, $extra = [], $mention = [])
+    public function success($title, $msg, $extra = [], $mention = []): bool|string
     {
         return $this->send('info', $title, $msg, $mention, $extra);
     }
@@ -120,9 +99,8 @@ class Feishu extends Notify implements NotifyInterface {
      * @param string $msg
      * @param array $extra
      * @param array $mention
-     * @return void
      */
-    public function error($title, $msg, $extra = [], $mention = [])
+    public function error($title, $msg, $extra = [], $mention = []): bool|string
     {
         return $this->send('warning', $title, $msg, $mention, $extra);
     }
@@ -134,10 +112,11 @@ class Feishu extends Notify implements NotifyInterface {
      * @param string $msg
      * @param array $extra
      * @param array $mention
-     * @return void
+     * @return bool|string
      */
-    public function notice($title, $msg, $extra = [], $mention = [])
+    public function notice($title, $msg, $extra = [], $mention = []): bool|string
     {
         return $this->send('comment', $title, $msg, $mention, $extra);
     }
+
 }

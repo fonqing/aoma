@@ -1,9 +1,9 @@
 <?php
-namespace Aoma;
-use Aoma\Notify\DingTalk;
-use Aoma\Notify\WxWork;
-use Aoma\Notify\Feishu;
-use Aoma\Notify\Notify as NotifyInterface;
+namespace aoma;
+use aoma\notify\DingTalk;
+use aoma\notify\NotifyInterface;
+use aoma\notify\WxWork;
+use aoma\notify\Feishu;
 use Exception;
 
 /**
@@ -20,28 +20,28 @@ class Notify {
      *
      * @var NotifyInterface|null $_instance
      */
-    private static $_instance = null;
+    private static ?NotifyInterface $_instance = null;
 
     /**
      * Notify providers
      *
      * @var array
      */
-    private static $_providers = [
+    private static array $_providers = [
         'weixin'   => WxWork::class,
         'dingding' => DingTalk::class,
         'feishu'   => Feishu::class,
     ];
 
     /**
-     * INitialize notify config
+     * IInitialize notify config
      *
      * @param string $driver
      * @param array $config
      * @return NotifyInterface
      * @throws Exception
      */
-    public static function init($driver, array $config)
+    public static function init(string $driver, array $config): NotifyInterface
     {
         $driver = strtolower($driver);
         if(!isset(self::$_providers[$driver])){
@@ -59,9 +59,8 @@ class Notify {
      * @param string $url request url
      * @param array $header header array
      * @param array|string|null $data
-     * @return string
      */
-    public static function post($url, $header = [], $data = null)
+    public static function post(string $url, array $header = [], $data = null): bool|string
     {
         $curl = curl_init();
         $data = is_array($data) ? http_build_query($data) : (string) $data;
@@ -78,13 +77,16 @@ class Notify {
         return $output;
     }
 
+    /**
+     * @throws Exception
+     */
     public static function __callStatic($name, $arguments)
     {
         if(empty(self::$_instance)){
             throw new Exception('Notify must be initialize first');
         }
         if(!method_exists(self::$_instance, $name)){
-            throw new Exception("Call to undefiend method \Aoma\Notify::{$name} ");
+            throw new Exception("Call to undefined method \aoma\Notify::{$name} ");
         }
         return call_user_func_array([self::$_instance, $name], $arguments);
     }
