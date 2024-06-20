@@ -11,4 +11,4 @@
 
 ```
 composer require fonqing/aoma  
-```g'i't
+```
