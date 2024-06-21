@@ -65,10 +65,13 @@ class UserSession
     /**
      * Get current user's primary id value
      *
-     * @throws \Exception
+     * @throws BusinessException
      */
     public function getUserId()
     {
+        if (is_null($this->user)) {
+            return '';
+        }
         if (is_string($this->idField)) {
             return $this->userInfo[$this->idField] ?? '';
         }

@@ -20,10 +20,13 @@ abstract class BaseController
      */
     protected Request $request;
 
+    /**
+     * @var UserSession 会话用户
+     */
     protected UserSession $session;
 
     /**
-     * @var array
+     * @var array 当前可用模型
      */
     protected array $__models__ = [];
 
@@ -41,13 +44,15 @@ abstract class BaseController
      */
     protected string $modelName = '';
 
-    protected string $exportName = '';
-
-    protected string $exportTitle = '';
-
-    protected array $exportColumn = [];
-
-    protected bool $fastExport = false;
+    /**
+     * @var array $exportConfig 导出配置
+     */
+    protected array $exportConfig = [
+        'name'    => '', // 导出文件名
+        'title'   => '', // 导出表格标题
+        'columns' => [], // 字段配置
+        'fast'    => false // 大量数据高性能导出（需要安装 php-xlswriter 扩展）
+    ];
 
     /**
      * Auto query filter based on config
@@ -58,6 +63,7 @@ abstract class BaseController
 
     /**
      * @throws ModelNotFoundException
+     * @throws BusinessException
      */
     public function __construct()
     {
@@ -85,6 +91,7 @@ abstract class BaseController
 
     /**
      * @throws ModelNotFoundException
+     * @throws BusinessException
      */
     protected function initialize(): void
     {
@@ -106,21 +113,23 @@ abstract class BaseController
      *
      * @param string $name
      * @param mixed $class
-     * @throws ModelNotFoundException
+     * @throws ModelNotFoundException|BusinessException
      */
     protected function setModel(mixed $class, string $name = 'default'): void
     {
         if (isset($this->__models__[$name])) {
-            throw new ModelNotFoundException('model overwritten');
+            throw new BusinessException('model overwritten');
         }
         if (is_string($class) &&
             class_exists($class) &&
             is_subclass_of($class, BaseModel::class)) {
             $this->__models__[$name] = new $class();
+            $this->autoConfigExport($name);
             return;
         }
         if (!is_scalar($class) && is_a($class, BaseModel::class)) {
             $this->__models__[$name] = $class;
+            $this->autoConfigExport($name);
             return;
         }
         throw new ModelNotFoundException('invalid model', $class);
@@ -129,12 +138,13 @@ abstract class BaseController
     /**
      * Get model instance
      *
+     * @param string $name
      * @return BaseModel
      * @throws ModelNotFoundException
      */
-    protected function getModel(): BaseModel
+    protected function getModel(string $name = 'default'): BaseModel
     {
-        $name = $this->request->input('__model__', 'default');
+        $name = $this->request->input('__model__', $name);
         $name = preg_replace('/[^a-zA-Z0-9_\-]/', '', (string)$name);
         if (!isset($this->__models__[$name])) {
             throw new ModelNotFoundException('model not set', '');
@@ -143,22 +153,15 @@ abstract class BaseController
     }
 
     /**
+     * @param string $name
      * @return void
      * @throws ModelNotFoundException
      */
-    private function checkExport(): void
+    private function autoConfigExport(string $name): void
     {
-        $model = $this->getModel();
-        if (method_exists($model, 'initExport')) {
-            $config = $model::initExport();
-            if (empty($this->exportName)) {
-                $this->exportName = $config['name'];
-            }
-            if (empty($this->exportTitle)) {
-                $this->exportTitle = $config['title'];
-            }
-            $this->exportColumn = $config['columns'];
-            $this->fastExport = $config['fast'] ?? false;
+        $model = $this->getModel($name);
+        if (method_exists($model, 'getExportConfig')) {
+            $this->exportConfig = $model->getExportConfig();
         }
     }
 

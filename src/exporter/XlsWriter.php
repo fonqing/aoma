@@ -548,7 +548,7 @@ class XlsWriter extends Exporter
             self::$static['object'] = self::$static['object']->insertText(
                 $offset,
                 $columnIndex + 1,
-                $column['label'],
+                $column['title'],
                 null,
                 self::style([
                     'border'     => Format::BORDER_MEDIUM,

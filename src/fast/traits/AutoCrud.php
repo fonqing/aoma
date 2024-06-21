@@ -276,7 +276,7 @@ trait AutoCrud
                 $sql->cache(true, 0, $modelName . '_cache_data');
             }
             $list = $this->indexQuery($sql)
-                ->order($this->getModelInfo('order', []))
+                ->order($this->getModelInfo('order', null))
                 ->paginate($pageSize)
                 ->each(function ($item, $key) {
                     return $this->pageEach($item, $key);
@@ -501,11 +501,8 @@ trait AutoCrud
 
     public function export()
     {
-        if (!property_exists($this, 'exportColumn')) {
-            return $this->error('请先在模型中定义导出配置');
-        }
-        if (!property_exists($this, 'exportName')) {
-            return $this->error('未指定导出名称');
+        if (!empty($this->exportConfig['columns'])) {
+            return $this->error('导出未配置');
         }
         ini_set('memory_limit', '1024M');
         set_time_limit(0);
@@ -515,7 +512,7 @@ trait AutoCrud
             if ($this->autoQueryFilter) {
                 $sql = $sql->queryFilter();
             }
-            $list = $this->indexQuery($sql)->order($this->getModelInfo('order', []))->select();
+            $list = $this->indexQuery($sql)->order($this->getModelInfo('order', null))->select();
         } catch (Exception $e) {
             return $this->error($e->getMessage());
         }
@@ -524,14 +521,14 @@ trait AutoCrud
             $list[$index] = $this->pageEach($item, $index);
         }
         $title = 'untitled_' . date('Ymd_His');
-        if (property_exists($this, 'exportTitle')) {
-            $title = $this->exportTitle;
+        if (!empty($this->exportConfig['title'])) {
+            $title = $this->exportConfig['title'];
         }
         try {
-            $excel = Exporter::loadDriver($this->fastExport ? "xls_writer" : "php_spreadsheet");
-            $excel->setColumns($this->exportColumn)
+            $excel = Exporter::loadDriver($this->exportConfig['fast'] ? "xls_writer" : "php_spreadsheet");
+            $excel->setColumns($this->exportConfig['columns'])
                 ->setTitle($title)
-                ->setFileName($this->exportName)
+                ->setFileName($this->exportConfig['name'])
                 ->setDataQuery($list)
                 ->setControllerContext($this)
                 ->export();
