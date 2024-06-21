@@ -48,4 +48,36 @@ class StringPlus
         }
         return strpos($haystack, $needle) !== false;
     }
+
+    public static function uniqueId($prefix = '', $length = 13): string
+    {
+        if (function_exists("random_bytes")) {
+            try {
+                $bytes = random_bytes(ceil($length / 2));
+            } catch (\Exception $e) {
+                return uniqid($prefix);
+            }
+        } elseif (function_exists("openssl_random_pseudo_bytes")) {
+            $bytes = openssl_random_pseudo_bytes(ceil($length / 2));
+        } else {
+            return uniqid($prefix);
+        }
+        return $prefix . substr(bin2hex($bytes), 0, $length);
+    }
+
+    public static function split(string $string, string $splitter): array|string
+    {
+        if (empty($splitter)) {
+            return str_split($string);
+        }
+        $pos = strpos($string, $splitter);
+        if ($pos === false) {
+            return $string;
+        }
+        return [
+            substr($string, 0, $pos),
+            substr($string, $pos + 1)
+        ];
+    }
+
 }

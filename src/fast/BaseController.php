@@ -19,7 +19,7 @@ abstract class BaseController
      */
     protected Request $request;
 
-    protected ?AdminInterface $authModel;
+    protected UserSession $session;
 
     /**
      * @var array
@@ -62,6 +62,7 @@ abstract class BaseController
     {
         $this->request = request();
         $this->initialize();
+        $this->session = new UserSession();
     }
 
     /**

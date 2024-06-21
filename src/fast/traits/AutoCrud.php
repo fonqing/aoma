@@ -178,7 +178,7 @@ trait AutoCrud
      * @param        $data
      * @return mixed
      */
-    public function beforeCreate($data): mixed
+    protected function beforeCreate($data): mixed
     {
         return $data;
     }
@@ -198,7 +198,7 @@ trait AutoCrud
      * @param        $data
      * @return mixed
      */
-    public function beforeUpdate($data): mixed
+    protected function beforeUpdate($data): mixed
     {
         return $data;
     }
@@ -210,7 +210,7 @@ trait AutoCrud
      * @param  mixed            $data 接受的参数，包含追加的
      * @return void
      */
-    public function afterCreate(array|int|string $pk, mixed $data)
+    protected function afterCreate(array|int|string $pk, mixed $data)
     {
     }
 
@@ -220,7 +220,7 @@ trait AutoCrud
      * @param int|array|string $pk   编辑数据的主键值，多主键传入数组
      * @param mixed            $data 接受的参数，包含追加的
      */
-    public function afterUpdate(int|array|string $pk, mixed $data)
+    protected function afterUpdate(int|array|string $pk, mixed $data)
     {
     }
 
@@ -231,7 +231,7 @@ trait AutoCrud
      * @param  mixed      $data
      * @return void
      */
-    public function afterDelete(array|int|string $pk, mixed $data)
+    protected function afterDelete(array|int|string $pk, mixed $data)
     {
     }
 
