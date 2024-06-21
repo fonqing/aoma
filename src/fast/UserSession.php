@@ -31,7 +31,7 @@ class UserSession
     public function set(mixed $user): void
     {
         if(!($user instanceof BaseModel)) {
-            throw new \Exception("Model must be an instance of BaseModel");
+            throw new BusinessException("Model must be an instance of BaseModel");
         }
         if(!method_exists($user, 'getPrivileges')) {
             throw new BusinessException("Auth Model must implements \\aoma\\fast\\UserInterface");
@@ -72,7 +72,7 @@ class UserSession
         if (is_string($this->idField)) {
             return $this->userInfo[$this->idField] ?? '';
         }
-        throw new \Exception("Unsupported union primary key");
+        throw new BusinessException("Unsupported union primary key");
     }
 
     /**

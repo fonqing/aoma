@@ -3,6 +3,7 @@ declare (strict_types = 1);
 
 namespace aoma\fast;
 
+use support\exception\BusinessException;
 use support\Request;
 use support\Response;
 use think\db\exception\ModelNotFoundException;
@@ -201,7 +202,7 @@ abstract class BaseController
      * @param array|Collection $array
      * @param string $key
      * @return float|int
-     * @throws \Exception
+     * @throws BusinessException
      */
     protected function sumField(Collection|array $array, string $key): float|int
     {
@@ -219,7 +220,7 @@ abstract class BaseController
                     2 => floatval($row[$keys[0]][$keys[1]] ?? 0),
                     3 => floatval($row[$keys[0]][$keys[1]][$keys[2]] ?? 0),
                     4 => floatval($row[$keys[0]][$keys[1]][$keys[2]][$keys[3]] ?? 0),
-                    default => throw new \Exception('后端合计逻辑位数不够'),
+                    default => throw new BusinessException('后端合计逻辑位数不够'),
                 };
             }
             return $sum;
