@@ -13,6 +13,7 @@
     "php": ">=8.0",
     "ext-redis": "*",
     "ext-curl": "*",
+    "ext-openssl": "*",
     "phpoffice/phpspreadsheet": "^2.0",
     "cache/simple-cache-bridge": "^1.2",
     "cache/redis-adapter": "^1.2"

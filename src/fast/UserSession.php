@@ -26,7 +26,7 @@ class UserSession
      * Set current user model
      *
      * @param mixed $user
-     * @throws \Exception
+     * @throws BusinessException
      */
     public function set(mixed $user): void
     {
