@@ -282,7 +282,7 @@ trait AutoCrud
                     return $this->pageEach($item, $key);
                 });
             return $this->success($this->indexAssign($list));
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
     }
@@ -415,7 +415,7 @@ trait AutoCrud
             return $this->success();
         }
         $data = $model->findOrEmpty($pkValue);
-        if ($data->isEmpty()){
+        if ($data->isEmpty()) {
             return $this->error("无法加载更新数据");
         }
         $res = [];
@@ -499,9 +499,9 @@ trait AutoCrud
         return $this->success($this->detailAssign($data));
     }
 
-    public function export()
+    public function export(): Response
     {
-        if (!empty($this->exportConfig['columns'])) {
+        if (empty($this->exportConfig['columns'])) {
             return $this->error('导出未配置');
         }
         ini_set('memory_limit', '1024M');
@@ -525,14 +525,13 @@ trait AutoCrud
             $title = $this->exportConfig['title'];
         }
         try {
-            $excel = Exporter::loadDriver($this->exportConfig['fast'] ? "xls_writer" : "php_spreadsheet");
-            $excel->setColumns($this->exportConfig['columns'])
+            $excel = Exporter::loadDriver(($this->exportConfig['fast'] ?? false) ? "xls_writer" : "php_spreadsheet");
+            return $excel->setColumns($this->exportConfig['columns'])
                 ->setTitle($title)
                 ->setFileName($this->exportConfig['name'])
                 ->setDataQuery($list)
                 ->setControllerContext($this)
                 ->export();
-            exit;
         } catch (Exception $e) {
             return $this->error($e->getMessage());
         }

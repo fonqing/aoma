@@ -7,8 +7,10 @@ use aoma\fast\BaseController;
 use aoma\StringPlus;
 use Exception;
 use support\Log;
+use support\Response;
 use Vtiful\Kernel\Excel;
 use Vtiful\Kernel\Format;
+
 class XlsWriter extends Exporter
 {
     private string $tmpPath = '';
@@ -41,7 +43,10 @@ class XlsWriter extends Exporter
     public function __construct(array $columns = [])
     {
         $this->tmpName = md5(uniqid() . microtime(true)) . '.xlsx';
-        $this->tmpPath = public_path('/uploads/download');
+        $this->tmpPath = public_path('/uploads/tmp');
+        if (!file_exists($this->tmpPath)) {
+            mkdir($this->tmpPath, 0755, true);
+        }
         $this->object = (new Excel([
             'path' => $this->tmpPath,
         ]))->fileName($this->tmpName);
@@ -153,8 +158,8 @@ class XlsWriter extends Exporter
             60,
             $this->formatStyle([
                 'fontSize' => 18,
-                'bold'     => true,
-                'align'    => [
+                'bold' => true,
+                'align' => [
                     Format::FORMAT_ALIGN_CENTER,
                     Format::FORMAT_ALIGN_VERTICAL_CENTER,
                 ],
@@ -165,7 +170,7 @@ class XlsWriter extends Exporter
     /**
      * @throws Exception
      */
-    public function export(): void
+    public function export(): Response
     {
         $this->check();
         $row = 1;
@@ -186,7 +191,7 @@ class XlsWriter extends Exporter
                 if (array_key_exists('summary', $columnName)) {
                     $summaryIndex[] = [
                         'index' => $columnIndex,
-                        'name'  => $indexName,
+                        'name' => $indexName,
                     ];
                 }
                 if (!empty($columnName['width'])) {
@@ -198,35 +203,41 @@ class XlsWriter extends Exporter
                 }
                 // 列名
                 $this->object = $this->object->insertText(
-                    $row - 1, $columnIndex - 1,
-                    $columnName['title'] ?? '', null, $this->formatStyle([
-                    'bold'  => true,
-                    'align' => [
-                        Format::FORMAT_ALIGN_CENTER,
-                        Format::FORMAT_ALIGN_VERTICAL_CENTER,
-                    ],
-                    'background' => 0xEEEEEE,
-                    'border'     => Format::BORDER_THIN,
-                ]));
-            } else {
-                $this->object = $this->object->insertText(
                     $row - 1,
-                    $columnIndex - 1, $columnName, null,
+                    $columnIndex - 1,
+                    $columnName['title'] ?? '',
+                    null,
                     $this->formatStyle([
-                        'bold'  => true,
+                        'bold' => true,
                         'align' => [
                             Format::FORMAT_ALIGN_CENTER,
                             Format::FORMAT_ALIGN_VERTICAL_CENTER,
                         ],
                         'background' => 0xEEEEEE,
-                        'border'     => Format::BORDER_THIN,
+                        'border' => Format::BORDER_THIN,
+                    ])
+                );
+            } else {
+                $this->object = $this->object->insertText(
+                    $row - 1,
+                    $columnIndex - 1,
+                    $columnName,
+                    null,
+                    $this->formatStyle([
+                        'bold' => true,
+                        'align' => [
+                            Format::FORMAT_ALIGN_CENTER,
+                            Format::FORMAT_ALIGN_VERTICAL_CENTER,
+                        ],
+                        'background' => 0xEEEEEE,
+                        'border' => Format::BORDER_THIN,
                     ])
                 );
             }
             ++$columnIndex;
         }
         try {
-            $allData = $this->data->select();
+            $allData = $this->data;
             if (method_exists($this->context, 'indexAssign')) {
                 $allData = $this->context->indexAssign($allData);
             }
@@ -248,7 +259,7 @@ class XlsWriter extends Exporter
                             null,
                             $this->formatStyle([
                                 'border' => Format::BORDER_THIN,
-                                'align'  => [
+                                'align' => [
                                     Format::FORMAT_ALIGN_CENTER,
                                     Format::FORMAT_ALIGN_VERTICAL_CENTER,
                                 ],
@@ -259,15 +270,19 @@ class XlsWriter extends Exporter
                         continue;
                     }
 
-                    if ((array_key_exists('type', $columnSetting)
+                    if (
+                        (array_key_exists('type', $columnSetting)
                             && 'decimal' === $columnSetting['type']) || (array_key_exists('summary', $columnSetting)
-                            && $columnSetting['summary'])) {
+                            && $columnSetting['summary'])
+                    ) {
                         $format = '#,##0.00';
                     }
 
                     // 回调配置
-                    if (array_key_exists('callback', $columnSetting)
-                        && $columnSetting['callback'] instanceof \Closure) {
+                    if (
+                        array_key_exists('callback', $columnSetting)
+                        && $columnSetting['callback'] instanceof \Closure
+                    ) {
                         $value = call_user_func_array(
                             $columnSetting['callback'],
                             [$item, $columnIndex]
@@ -299,11 +314,15 @@ class XlsWriter extends Exporter
                         }
                         $this->object = $this->object->insertText(
                             $row - 1,
-                            $columnIndex - 1, $value, $format, $this->formatStyle([
-                            'border' => Format::BORDER_THIN,
-                            'color'  => $color,
-                            'align'  => [$align, Format::FORMAT_ALIGN_VERTICAL_CENTER],
-                        ]));
+                            $columnIndex - 1,
+                            $value,
+                            $format,
+                            $this->formatStyle([
+                                'border' => Format::BORDER_THIN,
+                                'color' => $color,
+                                'align' => [$align, Format::FORMAT_ALIGN_VERTICAL_CENTER],
+                            ])
+                        );
                         ++$columnIndex;
                         continue;
                     }
@@ -319,7 +338,8 @@ class XlsWriter extends Exporter
                                 null,
                                 $this->formatStyle([
                                     'border' => Format::BORDER_THIN,
-                                ]));
+                                ])
+                            );
                             ++$columnIndex;
                             continue;
                         }
@@ -335,15 +355,18 @@ class XlsWriter extends Exporter
                                     $this->object = $this->object->insertText(
                                         $row - 1,
                                         $columnIndex - 1,
-                                        $config['text'], null, $style ? $this->formatStyle([
-                                        'color'  => $config['color'] ?? null,
-                                        'bold'   => true,
-                                        'border' => Format::BORDER_THIN,
-                                        'align'  => [
-                                            Format::FORMAT_ALIGN_CENTER,
-                                            Format::FORMAT_ALIGN_VERTICAL_CENTER,
-                                        ],
-                                    ]) : null);
+                                        $config['text'],
+                                        null,
+                                        $style ? $this->formatStyle([
+                                            'color' => $config['color'] ?? null,
+                                            'bold' => true,
+                                            'border' => Format::BORDER_THIN,
+                                            'align' => [
+                                                Format::FORMAT_ALIGN_CENTER,
+                                                Format::FORMAT_ALIGN_VERTICAL_CENTER,
+                                            ],
+                                        ]) : null
+                                    );
                                 }
                                 ++$columnIndex;
                                 continue;
@@ -356,11 +379,12 @@ class XlsWriter extends Exporter
                                     null,
                                     $this->formatStyle([
                                         'border' => Format::BORDER_THIN,
-                                        'align'  => [
+                                        'align' => [
                                             Format::FORMAT_ALIGN_CENTER,
                                             Format::FORMAT_ALIGN_VERTICAL_CENTER,
                                         ],
-                                    ]));
+                                    ])
+                                );
                                 ++$columnIndex;
                                 continue;
                             }
@@ -376,7 +400,8 @@ class XlsWriter extends Exporter
                         $format,
                         $this->formatStyle([
                             'border' => Format::BORDER_THIN,
-                        ]));
+                        ])
+                    );
                     ++$columnIndex;
                 }
             }
@@ -390,13 +415,15 @@ class XlsWriter extends Exporter
                         $this->object = $this->object->insertFormula(
                             $index + 3,
                             $row['index'] - 1,
-                            '=SUM(' . $row['name'] . $startRow . ':' . $row['name'] . $endRow . ')', $this->formatStyle([
-                            'border'     => Format::BORDER_THIN,
-                            'align'      => [Format::FORMAT_ALIGN_VERTICAL_CENTER],
-                            'background' => 0xF7F7F7,
-                            'bold'       => true,
-                            'format'     => '#,##0.00',
-                        ]));
+                            '=SUM(' . $row['name'] . $startRow . ':' . $row['name'] . $endRow . ')',
+                            $this->formatStyle([
+                                'border' => Format::BORDER_THIN,
+                                'align' => [Format::FORMAT_ALIGN_VERTICAL_CENTER],
+                                'background' => 0xF7F7F7,
+                                'bold' => true,
+                                'format' => '#,##0.00',
+                            ])
+                        );
                     }
                 }
             }
@@ -408,19 +435,14 @@ class XlsWriter extends Exporter
         }
 
         $filePath = $this->object->output();
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="' . $this->tmpName . '.xlsx"');
-        header('Content-Length: ' . filesize($filePath));
-        header('Content-Transfer-Encoding: binary');
-        header('Cache-Control: must-revalidate');
-        header('Cache-Control: max-age=0');
-        header('Pragma: public');
-        ob_clean();
-        flush();
-        if (false === copy($filePath, 'php://output')) {
-            throw new Exception('导出失败');
-        }
+        $content = file_get_contents($filePath);
         file_exists($filePath) && unlink($filePath);
+        return response($content, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment;filename="' . $this->fileName . '.xlsx"',
+            'Content-Transfer-Encoding' => 'binary',
+            'Cache-Control' => 'max-age=0',
+        ]);
     }
 
     /**
@@ -460,9 +482,9 @@ class XlsWriter extends Exporter
             $format = $format->align(...$style['align']);
         }
         if (isset($style['background'])) {
-            if(is_string($style['background'])) {
+            if (is_string($style['background'])) {
                 $format = $format->background("0x{$style['background']}");
-            }elseif(is_int($style['background'])) {
+            } elseif (is_int($style['background'])) {
                 $format = $format->background($style['background']);
             }
         }
@@ -470,9 +492,9 @@ class XlsWriter extends Exporter
             $format = $format->bold();
         }
         if (isset($style['color'])) {
-            if(is_string($style['color'])) {
+            if (is_string($style['color'])) {
                 $format = $format->fontColor("0x{$style['color']}");
-            }elseif(is_int($style['color'])) {
+            } elseif (is_int($style['color'])) {
                 $format = $format->fontColor($style['color']);
             }
         }
@@ -504,8 +526,8 @@ class XlsWriter extends Exporter
             50,
             self::style([
                 'fontSize' => 18,
-                'bold'     => true,
-                'align'    => [
+                'bold' => true,
+                'align' => [
                     Format::FORMAT_ALIGN_LEFT,
                     Format::FORMAT_ALIGN_VERTICAL_CENTER,
                 ],
@@ -530,14 +552,15 @@ class XlsWriter extends Exporter
             '序号',
             null,
             self::style([
-                'border'     => Format::BORDER_MEDIUM,
-                'bold'       => true,
+                'border' => Format::BORDER_MEDIUM,
+                'bold' => true,
                 'background' => 0xEEEEEE,
-                'align'      => [
+                'align' => [
                     Format::FORMAT_ALIGN_CENTER,
                     Format::FORMAT_ALIGN_VERTICAL_CENTER,
                 ],
-            ]));
+            ])
+        );
         self::$static['object'] = self::$static['object']->setColumn('A1:A1', floatval(8));
         foreach ($columns as $columnIndex => $column) {
             $indexName = self::stringFromColumnIndex($columnIndex + 1);
@@ -551,14 +574,15 @@ class XlsWriter extends Exporter
                 $column['title'],
                 null,
                 self::style([
-                    'border'     => Format::BORDER_MEDIUM,
-                    'bold'       => true,
+                    'border' => Format::BORDER_MEDIUM,
+                    'bold' => true,
                     'background' => 0xEEEEEE,
-                    'align'      => [
+                    'align' => [
                         Format::FORMAT_ALIGN_CENTER,
                         Format::FORMAT_ALIGN_VERTICAL_CENTER,
                     ],
-                ]));
+                ])
+            );
         }
         $offset = $offset + 1;
     }
@@ -584,11 +608,12 @@ class XlsWriter extends Exporter
                 null,
                 self::style([
                     'border' => Format::BORDER_THIN,
-                    'align'  => [
+                    'align' => [
                         Format::FORMAT_ALIGN_CENTER,
                         Format::FORMAT_ALIGN_VERTICAL_CENTER,
                     ],
-                ]));
+                ])
+            );
             $columnIndex = $columnIndex + 1;
             // 每一列逐列赋值
             foreach ($columns as $column) {
@@ -596,14 +621,16 @@ class XlsWriter extends Exporter
                 // 数据表直接key
                 if (isset($row[$key])) {
                     // 数字列自动合计
-                    if ((array_key_exists('summary', $column) && $column['summary'])
-                        || (array_key_exists('type', $column) && 'decimal' == $column['type'])) {
+                    if (
+                        (array_key_exists('summary', $column) && $column['summary'])
+                        || (array_key_exists('type', $column) && 'decimal' == $column['type'])
+                    ) {
                         // 提前生成合计公式
                         $cellName = self::stringFromColumnIndex($columnIndex);
                         if (!array_key_exists($cellName, $sum)) {
                             $sum[$cellName] = [
                                 'column' => $columnIndex,
-                                'value'  => '=SUM(' . $cellName . ($offset + 1) . ':' . $cellName . ($offset + count($data)) . ')',
+                                'value' => '=SUM(' . $cellName . ($offset + 1) . ':' . $cellName . ($offset + count($data)) . ')',
                             ];
                         }
                         // 插入单元格数字内容
@@ -614,11 +641,12 @@ class XlsWriter extends Exporter
                             '#,##0.00',
                             self::style([
                                 'border' => Format::BORDER_THIN,
-                                'align'  => [
+                                'align' => [
                                     Format::FORMAT_ALIGN_RIGHT,
                                     Format::FORMAT_ALIGN_VERTICAL_CENTER,
                                 ],
-                            ]));
+                            ])
+                        );
                     } else {
                         self::$static['object'] = self::$static['object']->insertText(
                             $offset,
@@ -627,7 +655,7 @@ class XlsWriter extends Exporter
                             null,
                             self::style([
                                 'border' => Format::BORDER_THIN,
-                                'align'  => [
+                                'align' => [
                                     Format::FORMAT_ALIGN_LEFT,
                                     Format::FORMAT_ALIGN_VERTICAL_CENTER,
                                 ],
@@ -644,11 +672,12 @@ class XlsWriter extends Exporter
                         null,
                         self::style([
                             'border' => Format::BORDER_THIN,
-                            'align'  => [
+                            'align' => [
                                 Format::FORMAT_ALIGN_LEFT,
                                 Format::FORMAT_ALIGN_VERTICAL_CENTER,
                             ],
-                        ]));
+                        ])
+                    );
                 }
                 $columnIndex = $columnIndex + 1;
             }
@@ -661,16 +690,17 @@ class XlsWriter extends Exporter
                 $row['column'],
                 $row['value'],
                 self::style([
-                    'border'     => Format::BORDER_THIN,
+                    'border' => Format::BORDER_THIN,
                     'background' => 0xEEEEEE,
-                    'format'     => '#,##0.00',
-                    'fontSize'   => 12,
-                    'bold'       => true,
-                    'align'      => [
+                    'format' => '#,##0.00',
+                    'fontSize' => 12,
+                    'bold' => true,
+                    'align' => [
                         Format::FORMAT_ALIGN_RIGHT,
                         Format::FORMAT_ALIGN_VERTICAL_CENTER,
                     ],
-                ]));
+                ])
+            );
         }
         $offset = $offset + 1;
     }
@@ -721,16 +751,20 @@ class XlsWriter extends Exporter
             $fields = StringPlus::str_contains($key, '.') ? explode('.', $key) : [$key];
             switch (count($fields)) {
                 // 类似 row.money
-                case 1: $value .= $row[$fields[0]] ?? '';
+                case 1:
+                    $value .= $row[$fields[0]] ?? '';
                     break;
                 // 类似 row.user.name
-                case 2: $value .= $row[$fields[0]][$fields[1]] ?? '';
+                case 2:
+                    $value .= $row[$fields[0]][$fields[1]] ?? '';
                     break;
                 // 类似 row.user.info.age
-                case 3: $value .= $row[$fields[0]][$fields[1]][$fields[2]] ?? '';
+                case 3:
+                    $value .= $row[$fields[0]][$fields[1]][$fields[2]] ?? '';
                     break;
                 // 类似 row.user.info.address.city
-                case 4: $value .= $row[$fields[0]][$fields[1]][$fields[2]][$fields[3]] ?? '';
+                case 4:
+                    $value .= $row[$fields[0]][$fields[1]][$fields[2]][$fields[3]] ?? '';
                     break;
             }
         }

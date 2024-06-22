@@ -4,6 +4,7 @@ namespace aoma;
 
 use aoma\exporter\PhpSheet;
 use aoma\exporter\XlsWriter;
+use support\Response;
 
 /**
  * Data Exporter
@@ -37,7 +38,7 @@ use aoma\exporter\XlsWriter;
  *         'callback' => function($row) {
  *              return ($row['score'] ?? 1 ) * 2;
  *        }
-*      ]
+ *      ]
  * ])->setTitle('Course List')
  *          ->setFileName('Course_List')
  *          ->setControllerContext($controller)
@@ -56,13 +57,13 @@ abstract class Exporter
     abstract function setFileName(string $name): static;
     abstract function setControllerContext($controller): static;
     abstract function setDataQuery($data): static;
-    abstract function export(): void;
+    abstract function export(): Response;
     /**
      * @throws \Exception
      */
     public static function loadDriver(string $driverName): PhpSheet|XlsWriter
     {
-        if(isset(self::$drivers[$driverName])) {
+        if (isset(self::$drivers[$driverName])) {
             return new self::$drivers[$driverName];
         }
         throw new \Exception("Driver not found: $driverName");

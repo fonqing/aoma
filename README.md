@@ -72,7 +72,7 @@ class NewsController extends BaseController
 
 ## 模型代码示例
 
-在 think-orm 模型的基础上增加了部门模型属性, 用于模型自动验证等
+在 think-orm 模型的基础上扩展增加了部分模型属性, 用于自动CRUD和导出
 
 ```php
 <?php
@@ -93,7 +93,7 @@ class News extends BaseModel {
      * @var array
      */
     public static array $fields = [
-        'create' => ['cate_id', 'title', 'cover_image', 'content'],// allow create fields
+        'create' => ['cate_id', 'title', 'cover_image', 'content'],// allow to create fields
         'update' => ['cate_id', 'title', 'cover_image', 'content'], // allow update fields
         'index' => ['id','cate_id', 'title', 'cover_image', 'content', 'create_time'], // allow index fields
     ];
@@ -106,12 +106,12 @@ class News extends BaseModel {
     public static array $rules = [
         'create' => [
             'cate_id' => 'required|integer',
-            'title' => 'required|max:240',
+            'title'   => 'required|max:240',
             'content' => 'required'
         ],
         'update' => [
             'cate_id' => 'required|integer',
-            'title' => 'required|max:240',
+            'title'   => 'required|max:240',
             'content' => 'required'
         ]
     ];
@@ -123,9 +123,9 @@ class News extends BaseModel {
      */
     public static array $messages = [
         'cate_id.required' => '请选择分类',
-        'cate_id.integer' => '请选择分类',
-        'title.required' => '请输入标题',
-        'title.max' => '标题不能超过240字',
+        'cate_id.integer'  => '请选择分类',
+        'title.required'   => '请输入标题',
+        'title.max'       => '标题不能超过240字',
         'content.required' => '请输入内容'
     ];
 
@@ -161,10 +161,10 @@ trait NewsExport {
     public function getExportConfig(): array
     {
        return [
-           'title' => '文章列表',
-           'name' => '文章列表_' . date('YmdHis'),
+           'title'   => '文章列表',
+           'name'    => '文章列表_' . date('YmdHis'),
            'columns' => [
-               '_index'  => ['width' => 5, 'title' => '序号'], //
+               '_index'   => ['width' => 5, 'title' => '序号'], //
                 'cate_id' => [
                     'width' => 10,
                     'title' => '分类',

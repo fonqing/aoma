@@ -15,6 +15,8 @@ use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use aoma\fast\BaseController;
 use support\Log;
+use support\Response;
+
 class PhpSheet extends Exporter
 {
     private array $columns = [];
@@ -30,7 +32,7 @@ class PhpSheet extends Exporter
 
     private array $border = [
         'borderStyle' => Border::BORDER_THIN,
-        'color'       => ['argb' => '00000000'],
+        'color' => ['argb' => '00000000'],
     ];
 
     public function __construct(array $columns = [])
@@ -104,10 +106,10 @@ class PhpSheet extends Exporter
         $sheet->mergeCells([1, $row, count($this->columns), $row]);
         $sheet->getStyle([1, $row, count($this->columns), $row])
             ->applyFromArray([
-                'font'      => ['bold' => true, 'size' => 18],
+                'font' => ['bold' => true, 'size' => 18],
                 'alignment' => [
                     'horizontal' => Alignment::HORIZONTAL_CENTER,
-                    'vertical'   => Alignment::VERTICAL_CENTER,
+                    'vertical' => Alignment::VERTICAL_CENTER,
                 ],
             ]);
         $sheet->setCellValue([1, $row], $title);
@@ -118,7 +120,7 @@ class PhpSheet extends Exporter
      * @throws \PhpOffice\PhpSpreadsheet\Writer\Exception
      * @throws \Exception
      */
-    public function export(): void
+    public function export(): Response
     {
         $this->check();
         $this->enableCache();
@@ -150,15 +152,15 @@ class PhpSheet extends Exporter
                     'borders' => [
                         'allBorders' => $this->border,
                     ],
-                    'font'      => ['bold' => true],
+                    'font' => ['bold' => true],
                     'alignment' => [
                         'vertical' => Alignment::VERTICAL_CENTER,
                     ],
                     'fill' => [
-                        'color'      => ['argb' => 'FFEEEEEE'],
-                        'fillType'   => 'solid',
+                        'color' => ['argb' => 'FFEEEEEE'],
+                        'fillType' => 'solid',
                         'startColor' => ['argb' => 'FFEEEEEE'],
-                        'endColor'   => ['argb' => 'FFEEEEEE'],
+                        'endColor' => ['argb' => 'FFEEEEEE'],
                     ],
                 ]);
                 // 列名
@@ -168,7 +170,7 @@ class PhpSheet extends Exporter
             }
         }
         try {
-            $allData = $this->data->select();
+            $allData = $this->data;
             if (method_exists($this->context, 'indexAssign')) {
                 $allData = $this->context->indexAssign($allData);
             }
@@ -179,7 +181,7 @@ class PhpSheet extends Exporter
                     'borders' => [
                         'allBorders' => [
                             'borderStyle' => Border::BORDER_THIN,
-                            'color'       => ['argb' => '00000000'],
+                            'color' => ['argb' => '00000000'],
                         ],
                     ],
                     'alignment' => [
@@ -198,13 +200,13 @@ class PhpSheet extends Exporter
                         $cell->getStyle()->applyFromArray([
                             'alignment' => [
                                 'horizontal' => Alignment::HORIZONTAL_CENTER,
-                                'vertical'   => Alignment::VERTICAL_CENTER,
+                                'vertical' => Alignment::VERTICAL_CENTER,
                             ],
                             'fill' => [
-                                'color'      => ['argb' => 'FFEEEEEE'],
-                                'fillType'   => 'solid',
+                                'color' => ['argb' => 'FFEEEEEE'],
+                                'fillType' => 'solid',
                                 'startColor' => ['argb' => 'FFEEEEEE'],
-                                'endColor'   => ['argb' => 'FFEEEEEE'],
+                                'endColor' => ['argb' => 'FFEEEEEE'],
                             ],
                         ]);
                         $cell->setValue($index + 1);
@@ -229,9 +231,9 @@ class PhpSheet extends Exporter
                     ) {
                         $cell = $sheet->getCell([$columnIndex, $row]);
                         $value = call_user_func($columnSetting['callback'], $item);
-                        if (isset($columnSetting['type']) && 'string' === $columnSetting['type']){
+                        if (isset($columnSetting['type']) && 'string' === $columnSetting['type']) {
                             $cell->setValueExplicit($value);
-                        }else{
+                        } else {
                             $cell->setValue($value);
                         }
                         ++$columnIndex;
@@ -258,7 +260,7 @@ class PhpSheet extends Exporter
                                 if (array_key_exists('color', $config)) {
                                     $cell->getStyle()
                                         ->getFont()
-                                        ->setColor(new Color('FF'.$config['color']))
+                                        ->setColor(new Color('FF' . $config['color']))
                                         ->setBold(true);
                                 }
                                 if (array_key_exists('text', $config)) {
@@ -307,7 +309,7 @@ class PhpSheet extends Exporter
                     'borders' => [
                         'outline' => [
                             'borderStyle' => Border::BORDER_MEDIUM,
-                            'color'       => ['argb' => '00000000'],
+                            'color' => ['argb' => '00000000'],
                         ],
                     ],
                 ]);
@@ -320,9 +322,14 @@ class PhpSheet extends Exporter
         }
 
         $writer = new Xlsx($spreadsheet);
-        header('Content-Type: application/vnd.ms-excel');
-        header('Content-Disposition: attachment;filename="' . $this->fileName . '.xlsx"');
-        header('Cache-Control: max-age=0');
+        ob_start();
         $writer->save('php://output');
+        $content = ob_get_clean();
+        return response($content, 200, [
+            'Content-Type' => 'application/vnd.ms-excel',
+            'Content-Disposition' => 'attachment;filename="' . $this->fileName . '.xlsx"',
+            'Content-Transfer-Encoding' => 'binary',
+            'Cache-Control' => 'max-age=0',
+        ]);
     }
 }

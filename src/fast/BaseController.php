@@ -1,5 +1,5 @@
 <?php
-declare (strict_types = 1);
+declare(strict_types=1);
 
 namespace aoma\fast;
 
@@ -48,10 +48,10 @@ abstract class BaseController
      * @var array $exportConfig 导出配置
      */
     protected array $exportConfig = [
-        'name'    => '', // 导出文件名
-        'title'   => '', // 导出表格标题
+        'name' => '', // 导出文件名
+        'title' => '', // 导出表格标题
         'columns' => [], // 字段配置
-        'fast'    => false // 大量数据高性能导出（需要安装 php-xlswriter 扩展）
+        'fast' => false // 大量数据高性能导出（需要安装 php-xlswriter 扩展）
     ];
 
     /**
@@ -95,15 +95,15 @@ abstract class BaseController
      */
     protected function initialize(): void
     {
-        if(!empty($this->modelName)){
+        if (!empty($this->modelName)) {
             $this->setModel($this->modelName);
         }
         // 初始化钩子
-        if(method_exists($this, 'setup')){
+        if (method_exists($this, 'setup')) {
             $this->setup();
         }
         // 检查授权
-        if(method_exists($this, 'authorize')){
+        if (method_exists($this, 'authorize')) {
             $this->authorize();
         }
     }
@@ -120,9 +120,11 @@ abstract class BaseController
         if (isset($this->__models__[$name])) {
             throw new BusinessException('model overwritten');
         }
-        if (is_string($class) &&
+        if (
+            is_string($class) &&
             class_exists($class) &&
-            is_subclass_of($class, BaseModel::class)) {
+            is_subclass_of($class, BaseModel::class)
+        ) {
             $this->__models__[$name] = new $class();
             $this->autoConfigExport($name);
             return;
@@ -145,7 +147,7 @@ abstract class BaseController
     protected function getModel(string $name = 'default'): BaseModel
     {
         $name = $this->request->input('__model__', $name);
-        $name = preg_replace('/[^a-zA-Z0-9_\-]/', '', (string)$name);
+        $name = preg_replace('/[^a-zA-Z0-9_\-]/', '', (string) $name);
         if (!isset($this->__models__[$name])) {
             throw new ModelNotFoundException('model not set', '');
         }
@@ -162,6 +164,9 @@ abstract class BaseController
         $model = $this->getModel($name);
         if (method_exists($model, 'getExportConfig')) {
             $this->exportConfig = $model->getExportConfig();
+            if (!isset($this->exportConfig['fast'])) {
+                $this->exportConfig['fast'] = false;
+            }
         }
     }
 
