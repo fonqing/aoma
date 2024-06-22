@@ -105,14 +105,14 @@ class News extends BaseModel {
      */
     public static array $rules = [
         'create' => [
-            'cate_id' => 'required|integer',
-            'title'   => 'required|max:240',
-            'content' => 'required'
+            'cate_id' => 'require|integer',
+            'title'   => 'require|max:240',
+            'content' => 'require'
         ],
         'update' => [
-            'cate_id' => 'required|integer',
-            'title'   => 'required|max:240',
-            'content' => 'required'
+            'cate_id' => 'require|integer',
+            'title'   => 'require|max:240',
+            'content' => 'require'
         ]
     ];
 
@@ -122,11 +122,11 @@ class News extends BaseModel {
      * @var array
      */
     public static array $messages = [
-        'cate_id.required' => '请选择分类',
-        'cate_id.integer'  => '请选择分类',
-        'title.required'   => '请输入标题',
-        'title.max'        => '标题不能超过240字',
-        'content.required' => '请输入内容'
+        'cate_id.require' => '请选择分类',
+        'cate_id.integer' => '请选择分类',
+        'title.require'   => '请输入标题',
+        'title.max'       => '标题不能超过240字',
+        'content.require' => '请输入内容'
     ];
 
     /**
