@@ -68,8 +68,8 @@ abstract class BaseController
     public function __construct()
     {
         $this->request = request();
-        $this->initialize();
         $this->session = new UserSession();
+        $this->initialize();
     }
 
     /**

@@ -34,9 +34,9 @@ trait Authorize
     public function authorize(): bool
     {
         // Get module/controller/action
-        $module = strtolower($this->request->app ?? 'default');
-        $contr = strtolower($this->request->controller ?? 'index');
-        $action = strtolower($this->request->action ?? 'index');
+        $module = strtolower($this->request->app ?: 'default');
+        $contr = $this->normalizeController($this->request->controller);
+        $action = strtolower($this->request->action ?: 'index');
 
         // Parse action and get params
         $result = $this->parseAction($action);
@@ -66,6 +66,25 @@ trait Authorize
             }
         }
         throw new BusinessException('无权访问');
+    }
+
+    /**
+     * @param $contr
+     * @return string
+     */
+    private function normalizeController($contr): string
+    {
+        $contr = strtolower(trim(trim($contr), '/\\'));
+        if (empty($contr)) {
+            return 'index';
+        }
+        if (str_contains($contr, '\\')) {
+            $contr = substr($contr,strrpos($contr, '\\') + 1);
+            if (str_ends_with($contr, 'controller')) {
+                return (string) substr($contr, 0, -10);
+            }
+        }
+        return (string) $contr;
     }
 
     /**
@@ -109,6 +128,9 @@ trait Authorize
      */
     private function parseAction(string $action): array
     {
+        if (empty($action)) {
+            $action = 'index';
+        }
         $params = [];
         $pos = strpos($action, '?');
         if ($pos !== false) {

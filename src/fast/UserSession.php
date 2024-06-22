@@ -30,16 +30,18 @@ class UserSession
      */
     public function set(mixed $user): void
     {
-        if(!($user instanceof BaseModel)) {
-            throw new BusinessException("Model must be an instance of BaseModel");
+        if ($user) {
+            if(!($user instanceof BaseModel)) {
+                throw new BusinessException("Model must be an instance of BaseModel");
+            }
+            if(!method_exists($user, 'getPrivileges')) {
+                throw new BusinessException("Auth Model must implements \\aoma\\fast\\UserInterface");
+            }
+            $this->user = $user;
+            $this->userInfo = $user->toArray();
+            $this->idField = $user->getPk();
+            $this->privileges = $user->getPrivileges();
         }
-        if(!method_exists($user, 'getPrivileges')) {
-            throw new BusinessException("Auth Model must implements \\aoma\\fast\\UserInterface");
-        }
-        $this->user = $user;
-        $this->userInfo = $user->toArray();
-        $this->idField = $user->getPk();
-        $this->privileges = $user->getPrivileges();
     }
 
     /**
@@ -59,7 +61,7 @@ class UserSession
      */
     public function isLogin(): bool
     {
-        return !is_null($this->user);
+        return isset($this->user) && $this->user;
     }
 
     /**
@@ -69,7 +71,7 @@ class UserSession
      */
     public function getUserId()
     {
-        if (is_null($this->user)) {
+        if (!$this->isLogin()) {
             return '';
         }
         if (is_string($this->idField)) {
