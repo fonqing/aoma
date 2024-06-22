@@ -95,7 +95,7 @@ class News extends BaseModel {
     public static array $fields = [
         'create' => ['cate_id', 'title', 'cover_image', 'content'],// allow to create fields
         'update' => ['cate_id', 'title', 'cover_image', 'content'], // allow update fields
-        'index' => ['id','cate_id', 'title', 'cover_image', 'content', 'create_time'], // allow index fields
+        'index'  => ['id','cate_id', 'title', 'cover_image', 'content', 'create_time'], // allow index fields
     ];
 
     /**
@@ -125,7 +125,7 @@ class News extends BaseModel {
         'cate_id.required' => '请选择分类',
         'cate_id.integer'  => '请选择分类',
         'title.required'   => '请输入标题',
-        'title.max'       => '标题不能超过240字',
+        'title.max'        => '标题不能超过240字',
         'content.required' => '请输入内容'
     ];
 
