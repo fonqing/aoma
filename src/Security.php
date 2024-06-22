@@ -4,10 +4,10 @@ namespace aoma;
 
 class Security
 {
-    private const IV = 's_i_n_d_i_n_f_o_';
+    private const IV = 'a_o_m_a_s_o_f_t_';
 
     /**
-     * Simple encrypt data
+     * Encrypt data
      *
      * @param  mixed  $data 要加密的数据
      * @param  string $key  加密密钥
@@ -19,7 +19,7 @@ class Security
     }
 
     /**
-     * Simple decrypt data
+     * Decrypt data
      *
      * @param  mixed  $data 要解密的数据
      * @param  string $key  解密密钥

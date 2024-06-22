@@ -41,6 +41,13 @@ class StringPlus
         return (string) substr(str_shuffle(str_repeat($characters, $length)), 0, $length);
     }
 
+    /**
+     * function str_contains() is available since PHP 8.0.0
+     *
+     * @param string $haystack
+     * @param string $needle
+     * @return bool
+     */
     public static function str_contains(string $haystack, string $needle): bool
     {
         if (function_exists('str_contains')) {
@@ -49,7 +56,14 @@ class StringPlus
         return strpos($haystack, $needle) !== false;
     }
 
-    public static function uniqueId($prefix = '', $length = 13): string
+    /**
+     * Generate unique id
+     *
+     * @param string $prefix
+     * @param int $length
+     * @return string
+     */
+    public static function uniqueId(string $prefix = '', int $length = 13): string
     {
         if (function_exists("random_bytes")) {
             try {
@@ -65,6 +79,13 @@ class StringPlus
         return $prefix . substr(bin2hex($bytes), 0, $length);
     }
 
+    /**
+     * Split string into to parts by a specific character
+     *
+     * @param string $string
+     * @param string $splitter
+     * @return array|string
+     */
     public static function split(string $string, string $splitter): array|string
     {
         if (empty($splitter)) {

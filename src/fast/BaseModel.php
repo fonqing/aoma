@@ -286,6 +286,11 @@ class BaseModel extends Model {
         return $data;
     }
 
+    /**
+     * @param $pk
+     * @param $data
+     * @return void
+     */
     public static function afterCreate($pk, $data): void
     {
     }

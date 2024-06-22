@@ -31,8 +31,11 @@ trait Authorize
      *
      * @throws BusinessException
      */
-    public function authorize(): bool
+    protected function authorize(): bool
     {
+        if ($this->session->isSuperAdmin()){
+            return true;
+        }
         // Get module/controller/action
         $module = strtolower($this->request->app ?: 'default');
         $contr = $this->normalizeController($this->request->controller);
@@ -66,6 +69,27 @@ trait Authorize
             }
         }
         throw new BusinessException('无权访问');
+    }
+
+    /**
+     * @param string $ca
+     * @param array $params
+     * @param string $module
+     * @return bool
+     */
+    public function hasPrivilege(string $ca, array $params = [], string $module = 'default'): bool
+    {
+        if ($this->session->isSuperAdmin()){
+            return true;
+        }
+        [$contr, $action] = explode('/', $ca);
+        if ($this->isAllowed($contr, $action, $this->session->getPrivileges($module))) {
+            if(empty($params)){
+                return true;
+            }
+            return $this->matchParams($params);
+        }
+        return false;
     }
 
     /**

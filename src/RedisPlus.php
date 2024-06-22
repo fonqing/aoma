@@ -116,7 +116,6 @@ class RedisPlus extends \think\cache\driver\Redis {
      * @param  string                  $key
      * @param  int                     $length
      * @return array|bool|mixed|\Redis
-     * @throws \RedisException
      */
     public function queueNext(string $key, int $length = 1): mixed
     {

@@ -12,7 +12,11 @@ use support\exception\BusinessException;
  */
 class UserSession
 {
-    private ?BaseModel $user;
+    /**
+     * @var BaseModel $user
+     * @var UserInterface $user
+     */
+    private mixed $user;
     private array $userInfo = [];
     private string $idField;
 
@@ -31,10 +35,13 @@ class UserSession
     public function set(mixed $user): void
     {
         if ($user) {
-            if(!($user instanceof BaseModel)) {
+            if (!($user instanceof BaseModel)) {
                 throw new BusinessException("Model must be an instance of BaseModel");
             }
-            if(!method_exists($user, 'getPrivileges')) {
+            if (!method_exists($user, 'getPrivileges')) {
+                throw new BusinessException("Auth Model must implements \\aoma\\fast\\UserInterface");
+            }
+            if (!method_exists($user, 'isSuperAdmin')) {
                 throw new BusinessException("Auth Model must implements \\aoma\\fast\\UserInterface");
             }
             $this->user = $user;
@@ -62,6 +69,22 @@ class UserSession
     public function isLogin(): bool
     {
         return isset($this->user) && $this->user;
+    }
+
+    /**
+     * 超级用户判断
+     *
+     * @return bool
+     */
+    public function isSuperAdmin(): bool
+    {
+        if (!$this->isLogin()) {
+            return false;
+        }
+        if(!$this->user) {
+            return false;
+        }
+        return $this->user->isSuperAdmin() ?? false;
     }
 
     /**
