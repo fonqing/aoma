@@ -18,7 +18,7 @@ class UserSession
      */
     private mixed $user;
     private array $userInfo = [];
-    private string $idField;
+    private string|array $idField;
 
     private array $privileges = [];
 

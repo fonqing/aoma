@@ -168,9 +168,7 @@ class DatePlus {
             ['五', '星期五'],
             ['六', '星期六'],
         ];
-        $index = (int) date('w', $timestamp);
-        $short = $short ? 0 : 1;
-        return $weekNames[$index][$short] ?? '';
+        return $weekNames[(int) date('w', $timestamp)][$short ? 0 : 1] ?? '';
     }
 
     /**
@@ -194,6 +192,12 @@ class DatePlus {
         return $timestamp ? [$mon, $sun] : [date('Y-m-d', $mon), date('Y-m-d', $sun)];
     }
 
+    /**
+     * Fit different time format to timestamp
+     *
+     * @param mixed $arg
+     * @return int
+     */
     private static function parseTimeArg(mixed $arg): int
     {
          if(is_string($arg)){

@@ -105,7 +105,7 @@ trait Authorize
         if (str_contains($contr, '\\')) {
             $contr = substr($contr,strrpos($contr, '\\') + 1);
             if (str_ends_with($contr, 'controller')) {
-                return (string) substr($contr, 0, -10);
+                return substr($contr, 0, -10);
             }
         }
         return (string) $contr;

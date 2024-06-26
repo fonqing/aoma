@@ -24,24 +24,24 @@ trait AutoCrud
 {
     /**
      * @return void
-     * @throws ModelNotFoundException
+     * @throws BusinessException
      */
     private function checkModel(): void
     {
         $key = $this->request->input('__model__', 'default');
         $key = preg_replace('/[^a-zA-Z0-9_]/', '', $key);
         if (!isset($this->__models__[$key])) {
-            throw new ModelNotFoundException('Model not exists');
+            throw new BusinessException('Model not exists');
         }
     }
 
     /**
      * 读取模型信息
      *
-     * @param  string                 $key
-     * @param  mixed|string           $default
+     * @param string $key
+     * @param mixed|string $default
      * @return mixed|string|string[]
-     * @throws ModelNotFoundException
+     * @throws BusinessException
      */
     protected function getModelInfo(string $key, mixed $default = ''): mixed
     {
@@ -55,25 +55,30 @@ trait AutoCrud
     }
 
     /**
-     * @throws ModelNotFoundException
+     * @param string $name
+     * @return array
+     * @throws BusinessException
      */
-    protected function getFields($name): array
+    protected function getFields(string $name): array
     {
         $model = $this->getModel();
         return $this->dealFields($model::$fields[$name] ?? []);
     }
 
     /**
-     * @throws ModelNotFoundException
+     * @param string $name
+     * @param mixed $fields
+     * @throws BusinessException
      */
-    protected function setFields($name, $fields): void
+    protected function setFields(string $name, mixed $fields): void
     {
         $model = $this->getModel();
         $model::$fields[$name] = $this->dealFields($fields);
     }
 
     /**
-     * @throws ModelNotFoundException
+     * @return array
+     * @throws BusinessException
      */
     protected function getMessages(): array
     {
@@ -82,7 +87,9 @@ trait AutoCrud
     }
 
     /**
-     * @throws ModelNotFoundException
+     * @param $name
+     * @return array
+     * @throws BusinessException
      */
     protected function getRules($name): array
     {
@@ -91,9 +98,11 @@ trait AutoCrud
     }
 
     /**
-     * @throws ModelNotFoundException
+     * @param string $name
+     * @param $rules
+     * @throws BusinessException
      */
-    protected function setRules($name, $rules): void
+    protected function setRules(string $name, $rules): void
     {
         $model = $this->getModel();
         $model::$rules[$name] = $rules;
@@ -291,7 +300,7 @@ trait AutoCrud
      * 新增数据页
      * @param Request $request
      * @return Response
-     * @throws ModelNotFoundException
+     * @throws BusinessException
      */
     public function create(Request $request): Response
     {
@@ -338,11 +347,11 @@ trait AutoCrud
 
     /**
      * 获取模型的主键值
-     * @param  mixed       $pk
+     * @param mixed|null $pk
      * @param  BaseModel   $model
      * @return array|mixed
      */
-    protected function getPkValue(BaseModel $model, $pk = null): mixed
+    protected function getPkValue(BaseModel $model, mixed $pk = null): mixed
     {
         if (is_null($pk)) {
             $pk = $model->getPk();
@@ -362,7 +371,7 @@ trait AutoCrud
      * 编辑数据页
      * @param Request $request
      * @return Response
-     * @throws ModelNotFoundException
+     * @throws BusinessException
      */
     public function update(Request $request): Response
     {
@@ -470,16 +479,13 @@ trait AutoCrud
 
     /**
      * 详情
-     * @param  Request $request
+     * @param Request $request
      * @return Response
+     * @throws BusinessException
      */
     public function detail(Request $request): Response
     {
-        try {
-            $model = $this->getModel();
-        } catch (ModelNotFoundException $e) {
-            return $this->error($e->getMessage());
-        }
+        $model = $this->getModel();
         $pk = $model->getPk();
         $pkValue = $request->only(is_string($pk) ? [$pk] : $pk);
         $pkArr = $pk;

@@ -1,7 +1,8 @@
 <?php
 namespace aoma;
 use \Redis;
-use \Exception;
+use RedisException;
+
 /**
  * A multiple functional Redis library
  *
@@ -14,7 +15,7 @@ use \Exception;
 class RedisPlus extends \think\cache\driver\Redis {
 
     /**
-     * @var \Redis
+     * @var Redis
      */
     public $handler;
     /**
@@ -28,8 +29,9 @@ class RedisPlus extends \think\cache\driver\Redis {
     }
 
     /**
-     * @param  string             $key
+     * @param string $key
      * @return array
+     * @throws RedisException
      */
     public function getMembers(string $key): array
     {
@@ -37,8 +39,9 @@ class RedisPlus extends \think\cache\driver\Redis {
     }
 
     /**
-     * @param  string          $key
+     * @param string $key
      * @return int
+     * @throws RedisException
      */
     public function countMembers(string $key): int
     {
@@ -49,6 +52,7 @@ class RedisPlus extends \think\cache\driver\Redis {
      * @param string $key
      * @param mixed $value
      * @return bool
+     * @throws RedisException
      */
     public function hasMember(string $key, $value): bool
     {
@@ -78,6 +82,7 @@ class RedisPlus extends \think\cache\driver\Redis {
      * @param mixed $value
      * @param int $expireAt
      * @return bool|int
+     * @throws RedisException
      */
     public function queueIn(string $key, $value, int $expireAt = 0): bool|int
     {
@@ -93,6 +98,7 @@ class RedisPlus extends \think\cache\driver\Redis {
      *
      * @param string $key
      * @return bool|mixed
+     * @throws RedisException
      */
     public function queueOut(string $key): mixed
     {
@@ -102,8 +108,9 @@ class RedisPlus extends \think\cache\driver\Redis {
     /**
      * 获取队列长度
      *
-     * @param  string          $key
+     * @param string $key
      * @return bool|int
+     * @throws RedisException
      */
     public function queueLength(string $key): bool|int
     {
@@ -113,9 +120,10 @@ class RedisPlus extends \think\cache\driver\Redis {
     /**
      * 获取队列中的元素
      *
-     * @param  string                  $key
-     * @param  int                     $length
-     * @return array|bool|mixed|\Redis
+     * @param string $key
+     * @param int $length
+     * @return array|bool|mixed|Redis
+     * @throws RedisException
      */
     public function queueNext(string $key, int $length = 1): mixed
     {
@@ -136,7 +144,7 @@ class RedisPlus extends \think\cache\driver\Redis {
      * @param  callable        $fn  匿名函数
      * @param  int             $ttl 锁生命周期
      * @return mixed|null
-     * @throws \RedisException
+     * @throws RedisException
      */
     public function once(string $key, callable $fn, int $ttl = 1800): mixed
     {
@@ -157,6 +165,7 @@ class RedisPlus extends \think\cache\driver\Redis {
      * <code>
      * RedisPlus::deleteByPattern('prefix_*');
      * </code>
+     * @throws RedisException
      */
     public function deleteByPattern(string $key): int
     {
@@ -175,6 +184,7 @@ class RedisPlus extends \think\cache\driver\Redis {
      * @param string $lat latitude
      * @param string $data data
      * @return mixed
+     * @throws RedisException
      */
     public function addGeo(string $key, string $lng, string $lat, string $data): mixed
     {
@@ -190,6 +200,7 @@ class RedisPlus extends \think\cache\driver\Redis {
      * @param int $distance 100
      * @param string $unit m,km
      * @return mixed
+     * @throws RedisException
      */
     public function queryGeo(string $key, string $lng, string $lat, int $distance, string $unit = 'm'): mixed
     {

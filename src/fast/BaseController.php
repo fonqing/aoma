@@ -90,7 +90,6 @@ abstract class BaseController
     // 初始化
 
     /**
-     * @throws ModelNotFoundException
      * @throws BusinessException
      */
     protected function initialize(): void
@@ -111,9 +110,9 @@ abstract class BaseController
     /**
      * Register model
      *
-     * @param string $name
      * @param mixed $class
-     * @throws ModelNotFoundException|BusinessException
+     * @param string $name
+     * @throws BusinessException
      */
     protected function setModel(mixed $class, string $name = 'default'): void
     {
@@ -134,7 +133,7 @@ abstract class BaseController
             $this->autoConfigExport($name);
             return;
         }
-        throw new ModelNotFoundException('invalid model', $class);
+        throw new BusinessException('Invalid model:' . htmlentities((string)$class));
     }
 
     /**
@@ -142,14 +141,14 @@ abstract class BaseController
      *
      * @param string $name
      * @return BaseModel
-     * @throws ModelNotFoundException
+     * @throws BusinessException
      */
     protected function getModel(string $name = 'default'): BaseModel
     {
         $name = $this->request->input('__model__', $name);
         $name = preg_replace('/[^a-zA-Z0-9_\-]/', '', (string) $name);
         if (!isset($this->__models__[$name])) {
-            throw new ModelNotFoundException('model not set', '');
+            throw new BusinessException('model not set');
         }
         return $this->__models__[$name];
     }
@@ -157,7 +156,7 @@ abstract class BaseController
     /**
      * @param string $name
      * @return void
-     * @throws ModelNotFoundException
+     * @throws BusinessException
      */
     private function autoConfigExport(string $name): void
     {
