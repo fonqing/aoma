@@ -73,7 +73,7 @@ class RedisPlus extends \think\cache\driver\Redis {
     }
 
     /**
-     * Remove a member from Set
+     * Remove one or more member from Set
      *
      * @param string $key
      * @param mixed $value
