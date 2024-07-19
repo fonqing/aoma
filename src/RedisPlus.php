@@ -18,17 +18,26 @@ class RedisPlus extends \think\cache\driver\Redis {
      * @var Redis
      */
     public $handler;
+
     /**
+     * Put one or more member into Set
+     *
      * @param  string          $key
-     * @param  array           $values
+     * @param  mixed           $values
      * @return bool|int
      */
-    public function setMembers(string $key, array $values): bool|int
+    public function setMembers(string $key, mixed $values): bool|int
     {
-        return $this->handler->sAdd($key, ...$values);
+        if (is_array($values)) {
+            return $this->handler->sAdd($key, ...$values);
+        } else {
+            return $this->handler->sAdd($key, $values);
+        }
     }
 
     /**
+     * Get all members in Set
+     *
      * @param string $key
      * @return array
      * @throws RedisException
@@ -39,6 +48,8 @@ class RedisPlus extends \think\cache\driver\Redis {
     }
 
     /**
+     * Count the number of members in Set
+     *
      * @param string $key
      * @return int
      * @throws RedisException
@@ -49,6 +60,8 @@ class RedisPlus extends \think\cache\driver\Redis {
     }
 
     /**
+     * Check if a member exists in Set
+     *
      * @param string $key
      * @param mixed $value
      * @return bool
@@ -60,6 +73,24 @@ class RedisPlus extends \think\cache\driver\Redis {
     }
 
     /**
+     * Remove a member from Set
+     *
+     * @param string $key
+     * @param mixed $value
+     * @return bool
+     */
+    public function delMember(string $key, mixed $value): bool
+    {
+        if(is_array($value)){
+            return $this->handler->sRem($key, ...$value);
+        } else {
+            return $this->handler->sRem($key, $value);
+        }
+    }
+
+    /**
+     * Delete data from Redis by key
+     *
      * @param string $key
      * @return bool
      */
@@ -69,6 +100,8 @@ class RedisPlus extends \think\cache\driver\Redis {
     }
 
     /**
+     * Check if a key exists in Redis
+     *
      * @param  string $key
      * @return bool
      */
@@ -78,6 +111,8 @@ class RedisPlus extends \think\cache\driver\Redis {
     }
 
     /**
+     * Push element into queue
+     *
      * @param string $key
      * @param mixed $value
      * @param int $expireAt
@@ -94,7 +129,7 @@ class RedisPlus extends \think\cache\driver\Redis {
     }
 
     /**
-     * 取队列中的元素
+     * Pop element from queue
      *
      * @param string $key
      * @return bool|mixed
@@ -106,7 +141,7 @@ class RedisPlus extends \think\cache\driver\Redis {
     }
 
     /**
-     * 获取队列长度
+     * Get the length of queue
      *
      * @param string $key
      * @return bool|int
@@ -118,7 +153,7 @@ class RedisPlus extends \think\cache\driver\Redis {
     }
 
     /**
-     * 获取队列中的元素
+     * Get the next element of queue without pop it
      *
      * @param string $key
      * @param int $length
@@ -134,11 +169,15 @@ class RedisPlus extends \think\cache\driver\Redis {
     }
 
     /**
-     * 执行一次闭包函数
+     * Execute a function only once in a period of time
      *
      * 在单机部署情况且高并发争夺情况下，保证一个函数只执行一次；
+     * Used for single-machine deployment or Redis
      * 注意匿名函数必须返回值 本函数将返回匿名函数的返回值
+     * The callback function must return a value, and this function will return the return value of the anonymous function.
      * 函数内注意捕获异常，并记录日志
+     * Note that exceptions must be caught and logged within the function.
+     *
      *
      * @param  string          $key 锁名
      * @param  callable        $fn  匿名函数
@@ -157,7 +196,7 @@ class RedisPlus extends \think\cache\driver\Redis {
     }
 
     /**
-     * Delete more cache item by a key pattern
+     * Delete more cache item by a key RegExp pattern
      *
      * @param string $key
      * @return int
