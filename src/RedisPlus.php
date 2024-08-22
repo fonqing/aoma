@@ -1,5 +1,6 @@
 <?php
 namespace aoma;
+
 use \Redis;
 use RedisException;
 
@@ -12,7 +13,8 @@ use RedisException;
  * @copyright Aomasoft co.,Ltd. 2021
  * @version 1
  */
-class RedisPlus extends \think\cache\driver\Redis {
+class RedisPlus extends \think\cache\driver\Redis
+{
 
     /**
      * @var Redis
@@ -29,9 +31,9 @@ class RedisPlus extends \think\cache\driver\Redis {
     public function setMembers(string $key, mixed $values): bool|int
     {
         if (is_array($values)) {
-            return $this->handler->sAdd($key, ...$values);
+            return $this->handler()->sAdd($key, ...$values);
         } else {
-            return $this->handler->sAdd($key, $values);
+            return $this->handler()->sAdd($key, $values);
         }
     }
 
@@ -44,7 +46,7 @@ class RedisPlus extends \think\cache\driver\Redis {
      */
     public function getMembers(string $key): array
     {
-        return $this->handler->sMembers($key);
+        return $this->handler()->sMembers($key);
     }
 
     /**
@@ -56,7 +58,7 @@ class RedisPlus extends \think\cache\driver\Redis {
      */
     public function countMembers(string $key): int
     {
-        return $this->handler->sCard($key);
+        return $this->handler()->sCard($key);
     }
 
     /**
@@ -69,7 +71,7 @@ class RedisPlus extends \think\cache\driver\Redis {
      */
     public function hasMember(string $key, $value): bool
     {
-        return $this->handler->sIsMember($key, $value);
+        return $this->handler()->sIsMember($key, $value);
     }
 
     /**
@@ -81,10 +83,10 @@ class RedisPlus extends \think\cache\driver\Redis {
      */
     public function delMember(string $key, mixed $value): bool
     {
-        if(is_array($value)){
-            return $this->handler->sRem($key, ...$value);
+        if (is_array($value)) {
+            return $this->handler()->sRem($key, ...$value);
         } else {
-            return $this->handler->sRem($key, $value);
+            return $this->handler()->sRem($key, $value);
         }
     }
 
@@ -121,9 +123,9 @@ class RedisPlus extends \think\cache\driver\Redis {
      */
     public function queueIn(string $key, $value, int $expireAt = 0): bool|int
     {
-        $result = $this->handler->rPush($key, $value);
+        $result = $this->handler()->rPush($key, $value);
         if ($expireAt > 0 && $result) {
-            $this->handler->expireAt($key, $expireAt);
+            $this->handler()->expireAt($key, $expireAt);
         }
         return $result;
     }
@@ -137,7 +139,7 @@ class RedisPlus extends \think\cache\driver\Redis {
      */
     public function queueOut(string $key): mixed
     {
-        return $this->handler->lPop($key);
+        return $this->handler()->lPop($key);
     }
 
     /**
@@ -149,7 +151,7 @@ class RedisPlus extends \think\cache\driver\Redis {
      */
     public function queueLength(string $key): bool|int
     {
-        return $this->handler->lLen($key);
+        return $this->handler()->lLen($key);
     }
 
     /**
@@ -163,9 +165,9 @@ class RedisPlus extends \think\cache\driver\Redis {
     public function queueNext(string $key, int $length = 1): mixed
     {
         if (1 === $length) {
-            return $this->handler->lIndex($key, 0);
+            return $this->handler()->lIndex($key, 0);
         }
-        return $this->handler->lRange($key, 0, $length - 1);
+        return $this->handler()->lRange($key, 0, $length - 1);
     }
 
     /**
@@ -187,9 +189,9 @@ class RedisPlus extends \think\cache\driver\Redis {
      */
     public function once(string $key, callable $fn, int $ttl = 1800): mixed
     {
-        $id = $this->handler->incr($key);
+        $id = $this->handler()->incr($key);
         if (1 === $id) {
-            $this->handler->expire($key, $ttl);
+            $this->handler()->expire($key, $ttl);
             return call_user_func($fn);
         }
         return null;
@@ -208,9 +210,9 @@ class RedisPlus extends \think\cache\driver\Redis {
      */
     public function deleteByPattern(string $key): int
     {
-        $keys = $this->handler->keys($key);
-        if(is_array($keys) && !empty($keys)){
-            return $this->handler->del(...$keys);
+        $keys = $this->handler()->keys($key);
+        if (is_array($keys) && !empty($keys)) {
+            return $this->handler()->del(...$keys);
         }
         return 0;
     }
@@ -227,7 +229,7 @@ class RedisPlus extends \think\cache\driver\Redis {
      */
     public function addGeo(string $key, string $lng, string $lat, string $data): mixed
     {
-        return $this->handler->rawCommand('geoadd', $key, $lng, $lat, $data);
+        return $this->handler()->rawCommand('geoadd', $key, $lng, $lat, $data);
     }
 
     /**
@@ -243,6 +245,6 @@ class RedisPlus extends \think\cache\driver\Redis {
      */
     public function queryGeo(string $key, string $lng, string $lat, int $distance, string $unit = 'm'): mixed
     {
-        return $this->handler->rawCommand('georadius', $key, $lng, $lat, $distance, $unit, 'ASC', 'withdist');
+        return $this->handler()->rawCommand('georadius', $key, $lng, $lat, $distance, $unit, 'ASC', 'withdist');
     }
 }
