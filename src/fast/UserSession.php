@@ -17,7 +17,7 @@ class UserSession
      * @var UserInterface $user
      */
     private mixed $user;
-    private string|array $idField;
+    private string $idField;
 
     public function __construct(){}
 
@@ -45,10 +45,10 @@ class UserSession
      * Set current user model
      *
      * @param mixed $user
-     * @param string|array $idField
+     * @param string $idField
      * @throws BusinessException
      */
-    public function set(mixed $user, string|array $idField = 'id'): void
+    public function set(mixed $user, string $idField = 'id'): void
     {
         $this->checkUserModel($user);
         if(!empty($idField)) {
@@ -93,19 +93,14 @@ class UserSession
     }
 
     /**
-     * Get current user's primary id value
-     *
-     * @throws BusinessException
+     * Get current user's primary id
      */
     public function getUserId(): string|int
     {
         if (!$this->isLogin()) {
             return 0;
         }
-        if (is_string($this->idField)) {
-            return $this->userInfo[$this->idField] ?? 0;
-        }
-        throw new BusinessException("Unsupported union primary key");
+        return $this->userInfo[$this->idField] ?? 0;
     }
 
     /**
