@@ -36,6 +36,12 @@ class BaseModel extends Model {
         'update' => []
     ];
 
+    public static array $listWidth = [];
+
+    public static array $listAppend = [];
+
+    public static array $detailAppend = [];
+
     /**
      * @var array
      */

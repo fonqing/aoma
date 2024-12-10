@@ -3,10 +3,9 @@ declare(strict_types=1);
 
 namespace aoma\fast;
 
-use support\exception\BusinessException;
+use aoma\exception\BusinessException;
 use support\Request;
 use support\Response;
-use think\db\exception\ModelNotFoundException;
 use think\model\Collection;
 
 /**
@@ -62,7 +61,6 @@ abstract class BaseController
     protected bool $autoQueryFilter = true;
 
     /**
-     * @throws ModelNotFoundException
      * @throws BusinessException
      */
     public function __construct()
@@ -105,6 +103,34 @@ abstract class BaseController
         if (method_exists($this, 'authorize')) {
             $this->authorize();
         }
+    }
+
+    /**
+     * Get current module name
+     * @return string
+     */
+    public function getModuleName(): string
+    {
+        return strtolower($this->request->app ?: 'default');
+    }
+
+    /**
+     * Get Controller Name
+     * @return string
+     */
+    public function getControllerName(): string
+    {
+        return $this->normalizeController($this->request->controller);
+    }
+
+
+    /**
+     * Get Action name
+     * @return string
+     */
+    public function getActionName(): string
+    {
+        return strtolower($this->request->action ?: 'index');
     }
 
     /**
@@ -167,6 +193,25 @@ abstract class BaseController
                 $this->exportConfig['fast'] = false;
             }
         }
+    }
+
+    /**
+     * @param $contr
+     * @return string
+     */
+    private function normalizeController($contr): string
+    {
+        $contr = strtolower(trim(trim($contr), '/\\'));
+        if (empty($contr)) {
+            return 'index';
+        }
+        if (str_contains($contr, '\\')) {
+            $contr = substr($contr,strrpos($contr, '\\') + 1);
+            if (str_ends_with($contr, 'controller')) {
+                return substr($contr, 0, -10);
+            }
+        }
+        return (string) $contr;
     }
 
     /**

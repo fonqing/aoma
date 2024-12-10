@@ -4,7 +4,7 @@ namespace aoma\fast\traits;
 
 use aoma\Exporter;
 use Exception;
-use support\exception\BusinessException;
+use aoma\exception\BusinessException;
 use support\Log;
 use aoma\fast\BaseModel;
 use think\Validate;
@@ -50,6 +50,9 @@ trait AutoCrud
             'order' => $model::$order ?? $default,
             'cache' => $model::$cache ?? $default,
             'page_size', 'pageSize', 'pagesize', 'per_page' => $model::$pageSize ?? $default,
+            'list_with' => $model::$listWidth ?? [],
+            'list_append' => $model::$listAppend ?? [],
+            'detail_append' => $model::$detailAppend ?? [],
             default => $default,
         };
     }
@@ -279,6 +282,14 @@ trait AutoCrud
             if ($this->autoQueryFilter) {
                 $model->queryFilter();
             }
+            $with = $this->getModelInfo('list_with');
+            if(!empty($with)) {
+                $model->with($with);
+            }
+            $append = $this->getModelInfo('list_append');
+            if(!empty($append)) {
+                $model->append($append);
+            }
             $sql = $model->field($this->getFields('index'));
             if ($this->getModelInfo('cache', false)) {
                 $modelName = class_basename($model);
@@ -319,11 +330,7 @@ trait AutoCrud
                     return $this->error($errorMessage);
                 }
             }
-            try {
-                $model = $this->getModel();
-            } catch (ModelNotFoundException $e) {
-                return $this->error($e->getMessage());
-            }
+            $model = $this->getModel();
             // 验证通过
             Db::startTrans();
             try {
@@ -498,7 +505,13 @@ trait AutoCrud
             }
         }
         try {
-            $data = $model->findOrFail($pkValue);
+            $append = $this->getModelInfo('detail_append');
+            if(empty($append)) {
+                $data = $model->findOrFail($pkValue);
+            }else{
+                $data = $model->append($append)->findOrEmpty($pkValue);
+            }
+
         } catch (DataNotFoundException | DbException $e) {
             return $this->error($e->getMessage());
         }

@@ -37,9 +37,11 @@ trait Authorize
             return true;
         }
         // Get module/controller/action
-        $module = strtolower($this->request->app ?: 'default');
-        $contr = $this->normalizeController($this->request->controller);
-        $action = strtolower($this->request->action ?: 'index');
+        [$module, $contr, $action] = [
+            $this->getModuleName(),
+            $this->getControllerName(),
+            $this->getActionName()
+        ];
 
         // Parse action and get params
         $result = $this->parseAction($action);
@@ -72,6 +74,64 @@ trait Authorize
     }
 
     /**
+     * @param string $rule
+     * @param string $module
+     * @return void
+     */
+    public function setAnonymousRule(string $rule, string $module = 'default'): void
+    {
+        if(array_key_exists($module, $this->anonymousRules)) {
+            $this->anonymousRules[] = $rule;
+        }else{
+            $this->anonymousRules[$module] = $rule;
+        }
+    }
+
+    /**
+     * @param array $rules
+     * @param string $module
+     * @return void
+     */
+    public function setAnonymousRules(array $rules, string $module = 'default'): void
+    {
+        foreach($rules as $rule) {
+            $this->setAnonymousRule($rule, $module);
+        }
+    }
+
+    /**
+     * @param string $action
+     * @param string $controller
+     * @param string $module
+     * @return void
+     */
+    public function setUncheckAction(string $action, string $controller = '', string $module = ''): void
+    {
+        $module = empty($module) ? $this->getModuleName() : $module;
+        $contr = empty($controller) ? $this->getControllerName() : $controller;
+        if(array_key_exists($module, $this->uncheckRules)){
+            $this->uncheckRules[$module][]=$contr.'/'.$action;
+        }else{
+            $this->uncheckRules[$module] = [];
+        }
+    }
+
+    /**
+     * @param array $actions
+     * @param string $controller
+     * @param string $module
+     * @return void
+     */
+    public function setUncheckActions(array $actions = [], string $controller = '', string $module = ''): void
+    {
+        $module = empty($module) ? $this->getModuleName() : $module;
+        $contr = empty($controller) ? $this->getControllerName() : $controller;
+        foreach($actions as $action) {
+            $this->setUncheckAction($action, $contr, $module);
+        }
+    }
+
+    /**
      * @param string $ca
      * @param array $params
      * @param string $module
@@ -90,25 +150,6 @@ trait Authorize
             return $this->matchParams($params);
         }
         return false;
-    }
-
-    /**
-     * @param $contr
-     * @return string
-     */
-    private function normalizeController($contr): string
-    {
-        $contr = strtolower(trim(trim($contr), '/\\'));
-        if (empty($contr)) {
-            return 'index';
-        }
-        if (str_contains($contr, '\\')) {
-            $contr = substr($contr,strrpos($contr, '\\') + 1);
-            if (str_ends_with($contr, 'controller')) {
-                return substr($contr, 0, -10);
-            }
-        }
-        return (string) $contr;
     }
 
     /**
