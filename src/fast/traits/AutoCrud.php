@@ -272,7 +272,7 @@ trait AutoCrud
      * @param Request $request
      * @return Response
      */
-    public function index(Request $request): Response
+    public function index($request): Response
     {
         try {
             $this->checkModel();
@@ -313,7 +313,7 @@ trait AutoCrud
      * @return Response
      * @throws BusinessException
      */
-    public function create(Request $request): Response
+    public function create($request): Response
     {
         if ($request->method() == 'POST') {
             $fields = $this->getFields('create');
@@ -358,7 +358,7 @@ trait AutoCrud
      * @param  BaseModel   $model
      * @return array|mixed
      */
-    protected function getPkValue(BaseModel $model, mixed $pk = null): mixed
+    protected function getPkValue($model, mixed $pk = null): mixed
     {
         if (is_null($pk)) {
             $pk = $model->getPk();
@@ -380,7 +380,7 @@ trait AutoCrud
      * @return Response
      * @throws BusinessException
      */
-    public function update(Request $request): Response
+    public function update($request): Response
     {
         $model = $this->getModel();
         $pk = $model->getPk();
@@ -447,7 +447,7 @@ trait AutoCrud
      * @param Request $request
      * @return Response
      */
-    public function delete(Request $request): Response
+    public function delete($request): Response
     {
         try {
             $model = $this->getModel();
@@ -490,7 +490,7 @@ trait AutoCrud
      * @return Response
      * @throws BusinessException
      */
-    public function detail(Request $request): Response
+    public function detail($request): Response
     {
         $model = $this->getModel();
         $pk = $model->getPk();
