@@ -19,16 +19,7 @@ class UserSession
     private mixed $user;
     private string|array $idField;
 
-    /**
-     * @throws BusinessException
-     */
-    public function __construct(mixed $user = null, string|array $idField = '')
-    {
-        $this->checkUserModel($user);
-        if(!empty($idField)) {
-            $this->idField = $idField;
-        }
-    }
+    public function __construct(){}
 
     /**
      * @throws BusinessException
@@ -54,11 +45,15 @@ class UserSession
      * Set current user model
      *
      * @param mixed $user
+     * @param string|array $idField
      * @throws BusinessException
      */
-    public function set(mixed $user): void
+    public function set(mixed $user, string|array $idField = 'id'): void
     {
         $this->checkUserModel($user);
+        if(!empty($idField)) {
+            $this->idField = $idField;
+        }
     }
 
     /**
