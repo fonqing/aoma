@@ -52,6 +52,7 @@ trait AutoCrud
             'page_size', 'pageSize', 'pagesize', 'per_page' => $model::$pageSize ?? $default,
             'list_with' => $model::$listWidth ?? [],
             'list_append' => $model::$listAppend ?? [],
+            'detail_with' => $model::$detailWith ?? [],
             'detail_append' => $model::$detailAppend ?? [],
             default => $default,
         };

@@ -42,6 +42,8 @@ class BaseModel extends Model {
 
     public static array $detailAppend = [];
 
+    public static array $detailWith = [];
+
     /**
      * @var array
      */

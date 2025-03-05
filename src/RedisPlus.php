@@ -22,6 +22,26 @@ class RedisPlus extends \think\cache\driver\Redis
     public $handler;
 
     /**
+     * @param int $db
+     * @return bool 
+     */
+    public function selectDb(int $db)   
+    {
+        return $this->handler()->select($db);   
+    }
+
+    /**
+     * Get all keys in Redis
+     *
+     * @param  string $pattern
+     * @return array
+     */
+    public function keys($pattern = '*')
+    {
+        return $this->handler()->keys($pattern);
+    }
+
+    /**
      * Put one or more member into Set
      *
      * @param  string          $key
